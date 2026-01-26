@@ -15,20 +15,34 @@ export default function ResumenDashboard() {
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`)
       .then(res => res.json())
-      .then(data => setProductos(data.length));
+      .then(data => {
+        if (Array.isArray(data)) setProductos(data.length);
+        else console.error('Invalid productos data:', data);
+      })
+      .catch(err => console.error('Error al obtener productos:', err));
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`)
       .then(res => res.json())
-      .then(data => setCategorias(data.length));
+      .then(data => {
+        if (Array.isArray(data)) setCategorias(data.length);
+        else console.error('Invalid categorias data:', data);
+      })
+      .catch(err => console.error('Error al obtener categorias:', err));
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios`)
       .then(res => res.json())
-      .then(data => setCantidadUsuarios(data.length))
+      .then(data => {
+        if (Array.isArray(data)) setCantidadUsuarios(data.length);
+        else console.error('Invalid usuarios data:', data);
+      })
       .catch(err => console.error('Error al obtener usuarios:', err));
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/reclamos`)
       .then(res => res.json())
-      .then(data => setCantidadReclamos(data.length))
+      .then(data => {
+        if (Array.isArray(data)) setCantidadReclamos(data.length);
+        else console.error('Invalid reclamos data:', data);
+      })
       .catch(err => console.error('Error al obtener reclamos:', err));
   }, []);
 

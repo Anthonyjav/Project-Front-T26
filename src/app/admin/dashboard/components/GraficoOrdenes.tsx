@@ -41,6 +41,12 @@ export default function DashboardGraficos() {
       fetch( `${process.env.NEXT_PUBLIC_API_URL}/orden-items`).then(res => res.json()),
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`).then(res => res.json()),
     ]).then(([ordenItems, productos]: [OrdenItem[], Producto[]]) => {
+      // Validate that both are arrays
+      if (!Array.isArray(ordenItems) || !Array.isArray(productos)) {
+        console.error('Invalid data format:', { ordenItems, productos });
+        return;
+      }
+
       const mapaNombres = productos.reduce<Record<number, string>>((acc, prod: Producto) => {
         acc[prod.id] = prod.nombre;
         return acc;
@@ -58,12 +64,17 @@ export default function DashboardGraficos() {
       }, []);
 
       setProductosVendidos(resumen);
-    });
+    }).catch(err => console.error('Error fetching productos vendidos:', err));
 
     // Órdenes e ingresos por día
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes`)
       .then(res => res.json())
         .then((ordenes: any[]) => {
+        if (!Array.isArray(ordenes)) {
+          console.error('Invalid ordenes data:', ordenes);
+          return;
+        }
+
         const agrupado = ordenes.reduce<VentaPorDia[]>((acc, orden: any) => {
           const fecha = new Date(orden.createdAt).toISOString().split('T')[0];
           const existente = acc.find((item) => item.fecha === fecha);
@@ -77,12 +88,17 @@ export default function DashboardGraficos() {
         }, []);
         setOrdenesPorDia(agrupado);
         setIngresosPorDia(agrupado);
-      });
+      }).catch(err => console.error('Error fetching ordenes:', err));
 
     // Usuarios por mes
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios`)
       .then(res => res.json())
       .then((usuarios: any[]) => {
+        if (!Array.isArray(usuarios)) {
+          console.error('Invalid usuarios data:', usuarios);
+          return;
+        }
+
         const agrupado = usuarios.reduce<UsuarioPorMes[]>((acc, u: any) => {
           const fecha = new Date(u.createdAt);
           const key = `${fecha.getFullYear()}-${fecha.getMonth() + 1}`;
@@ -95,18 +111,23 @@ export default function DashboardGraficos() {
           return acc;
         }, []);
         setUsuariosPorMes(agrupado);
-      });
+      }).catch(err => console.error('Error fetching usuarios:', err));
 
     Promise.all([
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`).then(res => res.json()),
       fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`).then(res => res.json())
     ]).then(([productos, categorias]: [Producto[], any[]]) => {
+      if (!Array.isArray(productos) || !Array.isArray(categorias)) {
+        console.error('Invalid categorias/productos data:', { productos, categorias });
+        return;
+      }
+
       const resumen = categorias.map((cat: any) => {
         const cantidad = productos.filter((p) => p.categoriaId === cat.id).length;
         return { nombre: cat.nombre, cantidad } as CategoriaResumen;
       });
       setCategorias(resumen);
-    });
+    }).catch(err => console.error('Error fetching categorias:', err));
   }, []);
 
   return (

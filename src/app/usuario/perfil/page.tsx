@@ -53,6 +53,7 @@ export default function PerfilUsuario() {
   const [orderDetails, setOrderDetails] = useState<any | null>(null);
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
   const [showRawOrder, setShowRawOrder] = useState(false);
+  const [showAlertaAsesoria, setShowAlertaAsesoria] = useState(true);
 
 
   const router = useRouter();
@@ -64,7 +65,6 @@ export default function PerfilUsuario() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes`);
         const data = await res.json();
 
-        // Filtrar órdenes del usuario
         const ordenesUsuario = data
           .filter((orden: any) => orden.usuarioId === usuario.id)
           .map((orden: any) => ({
@@ -98,6 +98,16 @@ export default function PerfilUsuario() {
   }, [usuario]);
 
 
+
+  // Alerta temporal de asesoría
+  useEffect(() => {
+    if (showAlertaAsesoria) {
+      const timer = setTimeout(() => {
+        setShowAlertaAsesoria(false);
+      }, 5000); // 5 segundos
+      return () => clearTimeout(timer);
+    }
+  }, [showAlertaAsesoria]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('usuario');
@@ -462,6 +472,33 @@ export default function PerfilUsuario() {
             cuenta y ver tus productos en el carrito.
           </p>
         </div>
+
+        {/* Alerta temporal de confirmación de pago */}
+        {showAlertaAsesoria && (
+          <div style={{
+            backgroundColor: '#d4edda',
+            border: '2px solid #28a745',
+            borderRadius: '8px',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            animation: 'slideIn 0.3s ease-out'
+          }}>
+            <div style={{ fontSize: '28px', color: '#28a745', fontWeight: 'bold' }}>✓</div>
+            <div>
+              <h2 style={{ margin: '0 0 8px 0', color: '#155724', fontSize: '20px' }}>
+                ¡Pago Exitoso!
+              </h2>
+              <p style={{ margin: '0 0 4px 0', color: '#155724', fontSize: '16px' }}>
+                Un asesor se pondrá en contacto con usted en los próximos minutos para confirmar su pedido.
+              </p>
+              <p style={{ margin: 0, color: '#155724', fontSize: '14px' }}>
+                Revise su correo electrónico para más detalles.
+              </p>
+            </div>
+          </div>
+        )}
 
         {mensajeCompra && (
           <div className="p-4 text-center bg-green-100 text-green-800 rounded-md">
