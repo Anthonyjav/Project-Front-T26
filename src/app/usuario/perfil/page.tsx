@@ -184,6 +184,8 @@ export default function PerfilUsuario() {
       }
 
       // Eliminar del estado local
+            // Eliminar del estado local
+
       setOrdenes((prev) => prev.filter((orden) => orden.id !== ordenId));
     } catch (error) {
       console.error('Error:', error);
