@@ -120,12 +120,13 @@ export default function ListarProductosAdmin() {
       });
       nuevaImagenes.forEach((file) => formData.append('imagenes', file));
       const token = localStorage.getItem('token');
-      const res = await fetch(
-
-        { method: 'PUT',headers: {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos/${productoEditando.id}`, {
+        method: 'PUT',
+        headers: {
           Authorization: `Bearer ${token}`,
-        }, body: formData }
-      );
+        },
+        body: formData,
+      });
       if (!res.ok) throw new Error('Error al guardar el producto');
       const actualizado = await res.json();
       setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
