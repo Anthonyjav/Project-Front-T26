@@ -201,14 +201,9 @@ export default function ListarProductosAdmin() {
               </h3>
               <div className="flex items-center gap-3 mb-2">
                 <p className="text-sm font-bold text-gray-800">S/ {producto.precio}</p>
-                <span
-                  className={`text-xs font-medium ${
-                    isActivo ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {isActivo ? 'Activo' : 'Inactivo'}
+                <span className={`text-xs font-medium ${(producto.activo === true || producto.activo === '1' || producto.activo === 1) ? 'text-green-600' : 'text-red-600'}`}>
+                  {(producto.activo === true || producto.activo === '1' || producto.activo === 1) ? 'Activo' : 'Inactivo'}
                 </span>
-
               </div>
               <ul className="text-sm text-gray-700 space-y-1 mb-4">
                 {producto.categoria?.nombre && (
