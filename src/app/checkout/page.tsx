@@ -299,7 +299,7 @@ useEffect(() => {
   container.setAttribute("kr-language", "es-PE");
   container.setAttribute(
       "kr-public-key",
-      "84426447:testpublickey_QCOElYQ9EppkGyhK4vn9LVgZaoq5sgvrriJkgDpiei39L"
+      "84426447:publickey_CS1o1y3bR0PqBxx23q9BWLaf3MmXXm9u1dRfsIDZVzDtY"
   );
 
  
