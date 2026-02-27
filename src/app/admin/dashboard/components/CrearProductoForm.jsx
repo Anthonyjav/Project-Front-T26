@@ -119,7 +119,7 @@ export default function CrearProductoForm() {
   const [newColorHex, setNewColorHex] = useState('#000000');
   const [newColorName, setNewColorName] = useState('');
   const [colorMessageLocal, setColorMessageLocal] = useState('');
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '35', '36', '37', '38', '39', '40'];
 
   const handleColorChange = (e) => {
     const { value, checked } = e.target;

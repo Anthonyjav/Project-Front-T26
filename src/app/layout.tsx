@@ -4,7 +4,7 @@ import './globals.css';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { usePathname } from 'next/navigation';
-import Analytics from './components/Analytics'; // ✅ RUTA CORRECTA
+import Analytics from './components/Analytics'; 
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
