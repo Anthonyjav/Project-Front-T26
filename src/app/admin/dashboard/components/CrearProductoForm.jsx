@@ -113,18 +113,17 @@ export default function CrearProductoForm() {
     { name: 'Negro', hex: '#000000' },
     { name: 'Blanco', hex: '#FFFFFF' },
     { name: 'Gris', hex: '#4B5563' },
-    { name: 'Amarillo', hex: '#CA8A04' },
   ];
   const [availableColors, setAvailableColors] = useState(initialColors);
   const [newColorHex, setNewColorHex] = useState('#000000');
   const [newColorName, setNewColorName] = useState('');
   const [colorMessageLocal, setColorMessageLocal] = useState('');
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '35', '36', '37', '38', '39', '40'];
+  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', '35', '36', '37', '38', '39', '40','Standard'];
 
   const handleColorChange = (e) => {
     const { value, checked } = e.target;
     if (checked) {
-      setColoresSeleccionados((prev) => [...prev, value]); // value será el hex
+      setColoresSeleccionados((prev) => [...prev, value]);
     } else {
       setColoresSeleccionados((prev) => prev.filter((hex) => hex !== value));
     }

@@ -278,7 +278,7 @@ export default function ProductoDetalle() {
             </div>
 
             <div className="order-2 lg:order-3 space-y-6">
-              <h3 className="font-light text-4xl mb-3">{nombre}</h3>
+              <h3 className="font-light text-4xl mb-3 text-black">{nombre}</h3>
               <p className="font-medium text-2xl text-gray-500 mb-10">S/ {precio}</p>
               
               <div className="flex flex-col gap-3">
@@ -333,32 +333,39 @@ export default function ProductoDetalle() {
                 </div>
               </div>
 
-              <div className="mb-10">
-                <label className="block text-sm font-medium mb-2">{/*Cantidad:*/}</label>
-                {producto.cantidad === 0 ? (
-                  <p className="text-red-500 text-sm">Sin stock disponible</p>
-                ) : (
-                  <div className="flex items-center border border-gray-300 w-fit overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                      className="px-4 py-2 text-xl text-gray-600 hover:text-gray-400 cursor-pointer"
-                      disabled={cantidad <= 1}
-                    >
-                      –
-                    </button>
-                    <span className="w-15 py-2 text-center text-sm font-medium">{cantidad}</span>
-                    <button
-                      type="button"
-                      onClick={() => setCantidad(Math.min(producto.cantidad, cantidad + 1))}
-                      className="px-4 py-2 text-xl text-gray-600 hover:text-gray-400 cursor-pointer" 
-                      disabled={cantidad >= producto.cantidad}
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
-              </div>
+            <div className="mb-10">
+              <label className="block text-sm font-medium mb-2"></label>
+
+              {producto.cantidad === 0 ? (
+                <p className="text-red-500 text-sm">Sin stock disponible</p>
+              ) : (
+                <div className="flex items-center border border-gray-300 w-fit overflow-hidden">
+                  
+                  <button
+                    type="button"
+                    onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                    className="px-4 py-2 text-xl text-black hover:text-gray-700 cursor-pointer"
+                    disabled={cantidad <= 1}
+                  >
+                    –
+                  </button>
+
+                  <span className="w-15 py-2 text-center text-sm font-medium text-black">
+                    {cantidad}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => setCantidad(Math.min(producto.cantidad, cantidad + 1))}
+                    className="px-4 py-2 text-xl text-black hover:text-gray-700 cursor-pointer"
+                    disabled={cantidad >= producto.cantidad}
+                  >
+                    +
+                  </button>
+
+                </div>
+              )}
+            </div>
 
               <button
                 onClick={handleAgregarAlCarrito}
@@ -531,7 +538,7 @@ export default function ProductoDetalle() {
           {/* Recomendaciones */}
           <div className="max-w-6xl mx-auto mt-20">
           
-            <h5 className="text-2xl font-medium text-center mb-10 justify-center">TAMBIÉN PODRÍA GUSTARTE</h5>
+            <h5 className="text-2xl font-medium text-center mb-10 justify-center  text-black">TAMBIÉN PODRÍA GUSTARTE</h5>
             {loadingRec ? (
               <p>Cargando recomendaciones...</p>
             ) : (

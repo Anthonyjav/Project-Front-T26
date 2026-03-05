@@ -12,6 +12,9 @@ export default function ListarProductosAdmin() {
   const [nuevaImagenes, setNuevaImagenes] = useState([]);
   const nuevaImagenesURLs = useRef([]);
 
+  // categorias disponibles para filtro y edición
+  const [categorias, setCategorias] = useState([]);
+
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [paginaActual, setPaginaActual] = useState(1);
@@ -33,7 +36,22 @@ export default function ListarProductosAdmin() {
     fetchProductos();
   }, []);
 
-  const categorias = [...new Set(productos.map((p) => p.categoria?.nombre).filter(Boolean))];
+  // cargar categorías una vez
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`);
+        if (!res.ok) throw new Error('Error al cargar categorías');
+        const data = await res.json();
+        setCategorias(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchCategorias();
+  }, []);
+
+  const categoriasFiltro = [...new Set(productos.map((p) => p.categoria?.nombre).filter(Boolean))];
 
   const productosFiltrados = productos.filter((producto) => {
     const coincideCategoria = categoriaSeleccionada
@@ -76,6 +94,8 @@ export default function ListarProductosAdmin() {
       ...producto,
       // Normalize various representations (boolean, '1'/'0', 1/0) to a proper boolean
       activo: producto.activo === true || producto.activo === '1' || producto.activo === 1,
+      // store category id separately for easier binding in form
+      categoriaId: producto.categoria?.id || '',
     });
     nuevaImagenesURLs.current.forEach((url) => URL.revokeObjectURL(url));
     nuevaImagenesURLs.current = [];
@@ -111,6 +131,7 @@ export default function ListarProductosAdmin() {
       const formData = new FormData();
       Object.entries(productoEditando).forEach(([k, v]) => {
         if (v === null || v === undefined) return;
+        if (k === 'categoria') return; // the backend expects categoriaId, not the full object
         if (k === 'activo' || k === 'seleccionado') {
           // send boolean-like fields as 'true' or 'false' to match backend expectation
           formData.append(k, v ? 'true' : 'false');
@@ -156,7 +177,7 @@ export default function ListarProductosAdmin() {
             className="border border-gray-300 rounded px-3 py-1 text-sm"
           >
             <option value="">Todas</option>
-            {categorias.map((cat, i) => (
+            {categoriasFiltro.map((cat, i) => (
               <option key={i} value={cat}>
                 {cat}
               </option>
@@ -275,7 +296,7 @@ export default function ListarProductosAdmin() {
       {modalAbierto && productoEditando && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-2">
           <div className="bg-white rounded-2xl p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl divide-y divide-gray-200">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Editar Producto</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Editar Producto </h2>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -307,6 +328,22 @@ export default function ListarProductosAdmin() {
                   />
                 </label>
                 <label>
+                  <span className="text-gray-700">Categoría:</span>
+                  <select
+                    name="categoriaId"
+                    value={productoEditando.categoriaId || ''}
+                    onChange={handleCambio}
+                    className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                  >
+                    <option value="">Selecciona una categoría</option>
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   <span className="text-gray-700">Descripción:</span>
                   <textarea
                     name="descripcion"
@@ -335,6 +372,7 @@ export default function ListarProductosAdmin() {
                       className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
                     />
                   </label>
+              
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label>

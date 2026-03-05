@@ -96,14 +96,14 @@ body {
 .marquee-container {
   overflow: hidden;
   position: relative;
-  background-color: #000; /* fondo negro */
-  color: #fff;            /* texto blanco */
+  background-color: #000; 
+  color: #fff;           
   white-space: nowrap;
 }
 
 .marquee-content {
   display: inline-block;
-  padding-left: 100%; /* para comenzar fuera de pantalla */
+  padding-left: 100%; 
   animation: scroll-text 15s linear infinite;
 }
 @font-face {
@@ -167,7 +167,7 @@ body {
 }
 
 
-/* Izipay personalization fallback (aplica si el CSS externo falla o tarda en cargar) */
+/* CODIGO DE ESTILOS DE IZIPAY -- NO CAMBIAR - NI ELIMINAR  */
 #izipay-form .kr-embedded {
   background-color: #fff !important;
   border-radius: 6px;
@@ -179,7 +179,7 @@ body {
   margin: 20px auto !important;
 }
 
-/* Contenedor con logo y estilos recomendados por IziPay */
+/* CONTENEDOR DE LOGOS Y ETILOS DE IZIPAY */
 .Contains-form {
   position: relative;
   display: block;
