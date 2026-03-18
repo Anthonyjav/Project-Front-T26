@@ -253,23 +253,42 @@ export default function Navbar() {
     }
   };
 
-  const aumentarCantidad = (id: number) => {
-    setCarrito((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, cantidad: item.cantidad + 1 } : item
-      )
-    );
+  const persistirCantidad = async (carritoActualizado: ProductoCarrito[], itemId: number) => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const storedUser = localStorage.getItem('usuario');
+
+    if (isLoggedIn && storedUser) {
+      try {
+        const item = carritoActualizado.find((i) => i.id === itemId);
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/carritoItem/${itemId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cantidad: item?.cantidad ?? 1 }),
+        });
+      } catch (err) {
+        console.error('Error al actualizar cantidad en backend:', err);
+      }
+    } else {
+      localStorage.setItem('carrito', JSON.stringify(carritoActualizado));
+    }
   };
 
-  const disminuirCantidad = (id: number) => {
-    setCarrito((prev) =>
-      prev.map((item) =>
-        item.id === id && item.cantidad > 1
-          ? { ...item, cantidad: item.cantidad - 1 }
+  const actualizarCantidad = (id: number, delta: number) => {
+    setCarrito((prev) => {
+      const actualizado = prev.map((item) =>
+        item.id === id
+          ? { ...item, cantidad: Math.max(1, item.cantidad + delta) }
           : item
-      )
-    );
+      );
+
+      void persistirCantidad(actualizado, id);
+      return actualizado;
+    });
   };
+
+  const aumentarCantidad = (id: number) => actualizarCantidad(id, 1);
+
+  const disminuirCantidad = (id: number) => actualizarCantidad(id, -1);
 
   const eliminarProducto = async (itemId: number) => {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
