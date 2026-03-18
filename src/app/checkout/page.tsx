@@ -38,6 +38,16 @@ export default function CheckoutPage() {
   // =====================================
   // CARRITO
   // =====================================
+  const getItemPrecio = (item: any) =>
+    Number(item?.variante?.precio ?? item?.producto?.precio ?? 0);
+
+  const ajustarURL = (url?: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const base = process.env.NEXT_PUBLIC_API_URL || 'https://api.sgstudio.shop';
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
   useEffect(() => {
     const fetchCarrito = async () => {
       const storedUser = localStorage.getItem('usuario');
@@ -71,7 +81,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (carrito?.items) {
       const itemsTotal = carrito.items.reduce(
-        (acc: number, item: any) => acc + item.cantidad * item.producto.precio,
+        (acc: number, item: any) => acc + item.cantidad * getItemPrecio(item),
         0
       );
       const shipping = form.shippingMethod === 'olva' ? 20 : (form.shippingMethod === 'recojo' ? 0 : 0);
@@ -167,7 +177,7 @@ export default function CheckoutPage() {
 
       // 3. Calcular subtotal
       const subtotal = carrito.items.reduce(
-        (t: number, i: any) => t + i.cantidad * i.producto.precio,
+        (t: number, i: any) => t + i.cantidad * getItemPrecio(i),
         0
       );
 
@@ -218,11 +228,12 @@ export default function CheckoutPage() {
             carrito.items.map((item: any) => ({
               productoId: item.producto.id,
               nombreProducto: item.producto.nombre,
-              precio: item.producto.precio,
+              precio: getItemPrecio(item),
               cantidad: item.cantidad,
+              varianteId: item.varianteId || item.variante?.id || null,
               talla: item.talla || null,
               color: item.color || null,
-              imagen: (item.producto && item.producto.imagen && item.producto.imagen[0]) || null
+              imagen: ajustarURL(item.producto?.imagen?.[0]) || null
             }))
           )
         }
@@ -299,7 +310,7 @@ useEffect(() => {
   container.setAttribute("kr-language", "es-PE");
   container.setAttribute(
       "kr-public-key",
-      "84426447:publickey_CS1o1y3bR0PqBxx23q9BWLaf3MmXXm9u1dRfsIDZVzDtY"
+      "84426447:testpublickey_QCOElYQ9EppkGyhK4vn9LVgZaoq5sgvrriJkgDpiei39L"
   );
 
  
@@ -332,11 +343,12 @@ useEffect(() => {
     items: carrito.items.map((item: any) => ({
       productoId: item.producto.id,
       nombreProducto: item.producto.nombre,
-      precio: item.producto.precio,
+      precio: getItemPrecio(item),
       cantidad: item.cantidad,
+      varianteId: item.varianteId || item.variante?.id || null,
       talla: item.talla || null,
-        color: item.color || null,
-        imagen: (item.producto && item.producto.imagen && item.producto.imagen[0]) || null
+      color: item.color || null,
+      imagen: ajustarURL(item.producto?.imagen?.[0]) || null
     }))
   });
   // Metadata para IziPay (debug log removido)
@@ -403,7 +415,7 @@ useEffect(() => {
 // NOTE: Removed temporary inline style enforcer; inputs now use Tailwind-like classes.
 
   // Calcular subtotal y costo de envío para mostrar en el resumen
-  const subtotalCalc = carrito?.items?.reduce((t: number, i: any) => t + i.cantidad * i.producto.precio, 0) || 0;
+  const subtotalCalc = carrito?.items?.reduce((t: number, i: any) => t + i.cantidad * getItemPrecio(i), 0) || 0;
   const shippingCost = form.shippingMethod === 'olva' ? 20 : (form.shippingMethod === 'recojo' ? 0 : null);
   const totalCalc = subtotalCalc + (shippingCost ?? 0);
 
@@ -553,12 +565,12 @@ useEffect(() => {
               {carrito.items.map((item: any, index: number) => (
                 <div 
                   key={index} 
-                  className="flex items-start justify-between gap-4"
+                    className="flex items-start justify-between gap-4"
                 >
                   {/* IZQUIERDA */}
                   <div className="flex gap-3">
                     <img
-                      src={item.producto.imagen[0]}
+                      src={ajustarURL(item.producto?.imagen?.[0]) || 'https://via.placeholder.com/64?text=IMG'}
                       className="w-14 h-16 object-cover rounded-md border"
                     />
 
@@ -570,6 +582,21 @@ useEffect(() => {
                         Cantidad: {item.cantidad}
                       </p>
                       <p className="text-xs text-gray-500">
+                        Talla: {item.talla || item.variante?.talla || '—'}
+                      </p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                        Color:
+                        {item.color ? (
+                          <span
+                            className="inline-block w-3.5 h-3.5 rounded border border-gray-300"
+                            style={{ backgroundColor: item.color }}
+                            title={item.color}
+                          />
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-500">
                         Orden: {form.orderId}
                       </p>
                     </div>
@@ -577,7 +604,7 @@ useEffect(() => {
 
                   {/* DERECHA */}
                   <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
-                    S/ {item.cantidad * item.producto.precio}
+                    S/ {(item.cantidad * getItemPrecio(item)).toFixed(2)}
                   </p>
                 </div>
               ))}

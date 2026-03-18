@@ -17,7 +17,7 @@ export default function ProductoDetalle() {
   const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
   const [recomendados, setRecomendados] = useState<any[]>([]);
   const [loadingRec, setLoadingRec] = useState(true);
-  const [cantidad, setCantidad] = useState(1);
+  const cantidad = 1;
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
   const [isHovering, setIsHovering] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -29,6 +29,7 @@ export default function ProductoDetalle() {
   // Selección de opciones del producto
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
@@ -89,23 +90,18 @@ export default function ProductoDetalle() {
 
       const prod = { ...data, imagen: imagenesAjustadas };
       setProducto(prod);
-      try {
-        const colorsRaw = prod.color || '';
-        const sizesRaw = prod.talla || '';
-        const colors = Array.isArray(colorsRaw)
-          ? colorsRaw
-          : String(colorsRaw).split(',').map((s: string) => s.trim()).filter((s: string) => s);
-        const sizes = Array.isArray(sizesRaw)
-          ? sizesRaw
-          : String(sizesRaw).split(',').map((s: string) => s.trim()).filter((s: string) => s);
-        if (colors.length) setSelectedColor(colors[0]);
-        if (sizes.length) setSelectedSize(sizes[0]);
-      } catch (e) {
+      const variantes = Array.isArray(prod.variantes) ? prod.variantes : [];
+      if (variantes.length > 0) {
+        const initialVariante = variantes[0];
+        setSelectedColor(initialVariante.color || null);
+        setSelectedSize(initialVariante.talla || null);
+        setSelectedVariantId(initialVariante.id);
+      } else {
         setSelectedColor(null);
         setSelectedSize(null);
+        setSelectedVariantId(null);
       }
       setImagenSeleccionada(imagenesAjustadas?.[0] || null);
-      setCantidad(1);
       setError(null);
     } catch (error: any) {
       setError(error.message);
@@ -161,8 +157,14 @@ export default function ProductoDetalle() {
       return;
     }
 
-    if (cantidad < 1) {
-      mostrarToast('La cantidad debe ser al menos 1');
+    if (!producto?.id || !selectedColor || !selectedSize) {
+      mostrarToast('Selecciona color y talla');
+      return;
+    }
+
+    const variant = varianteSeleccionada;
+    if (variant && (variant.cantidad ?? 0) < 1) {
+      mostrarToast('Sin stock disponible');
       return;
     }
 
@@ -173,9 +175,10 @@ export default function ProductoDetalle() {
         body: JSON.stringify({
           usuarioId: userId,
           productoId: producto.id,
-            cantidad,
-            talla: selectedSize || 'M',
-            color: selectedColor || (Array.isArray(producto?.color) ? producto.color[0] : String(producto?.color || 'negro').split(',')[0]),
+          varianteId: variant?.id,
+          cantidad: 1,
+          talla: selectedSize,
+          color: selectedColor,
         }),
       });
 
@@ -192,7 +195,15 @@ export default function ProductoDetalle() {
     }
   };
 
-  const { nombre, precio, imagen = [], color, talla } = producto || {};
+  const varianteSeleccionada = producto?.variantes?.find((v: any) => {
+    if (selectedVariantId) return v.id === selectedVariantId;
+    return v.color === selectedColor && v.talla === selectedSize;
+  }) ?? producto?.variantes?.[0] ?? null;
+
+  const nombre = producto?.nombre ?? '';
+  const imagen = producto?.imagen ?? [];
+  const precio = varianteSeleccionada?.precio ?? producto?.precio ?? 'N/A';
+  const stock = varianteSeleccionada?.cantidad ?? producto?.cantidad ?? 0;
 
   return (
     <>
@@ -286,10 +297,7 @@ export default function ProductoDetalle() {
                   {/*<p className="text-sm font-medium mb-2">Color</p>*/}
                   <div className="flex items-center gap-2 mb-6">
                     {(() => {
-                      const colorsRaw = producto?.color || '';
-                      const colors = Array.isArray(colorsRaw)
-                        ? colorsRaw
-                        : String(colorsRaw).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+                      const colors = Array.from(new Set((producto?.variantes || []).map((v: any) => v.color).filter(Boolean)));
                       if (!colors.length) return <p className="text-sm text-gray-500">Sin opciones</p>;
                       return colors.map((c: string, i: number) => {
                         const valid = isValidCssColor(c);
@@ -297,9 +305,16 @@ export default function ProductoDetalle() {
                         return (
                           <button
                             key={i}
-                            onClick={() => setSelectedColor(c)}
+                            onClick={() => {
+                              setSelectedColor(c);
+                              const candidate = (producto?.variantes || []).find((v: any) => v.color === c && v.talla === selectedSize) || (producto?.variantes || []).find((v: any) => v.color === c);
+                              if (candidate) {
+                                setSelectedSize(candidate.talla || null);
+                                setSelectedVariantId(candidate.id);
+                              }
+                            }}
                             title={c}
-                            className={`w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer border-3 border-white bg-white shadow-[0_1px_3px_rgba(0,0,0,0.40)] ${isSelected ? 'shadow-[0_4px_8px_rgba(0,0,0,0.50)]' : ''} transition-all duration-200'}`}
+                            className={`w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer border border-black bg-white shadow-[0_1px_3px_rgba(0,0,0,0.40)] ${isSelected ? 'shadow-[0_4px_8px_rgba(0,0,0,0.50)]' : ''} transition-all duration-200`}
                             style={{ backgroundColor: valid ? c : 'transparent' }}
                           >
                             {!valid && <span className="text-xs text-gray-700">{c}</span>}
@@ -314,15 +329,28 @@ export default function ProductoDetalle() {
                   <p className="text-sm font-medium mb-6">Talla:</p>
                   <div className="flex items-center gap-3">
                     {(() => {
-                      const sizesRaw = producto?.talla || '';
-                      const sizes = Array.isArray(sizesRaw)
-                        ? sizesRaw
-                        : String(sizesRaw).split(',').map((s: string) => s.trim()).filter((s: string) => s);
+                      const sizes = Array.from(
+                        new Set(
+                          (producto?.variantes || [])
+                            .filter((v: any) => (selectedColor ? v.color === selectedColor : true))
+                            .map((v: any) => v.talla)
+                            .filter(Boolean)
+                        )
+                      );
                       if (!sizes.length) return <p className="text-sm text-gray-500">Sin tallas</p>;
                       return sizes.map((s: string, idx: number) => (
                         <button
                           key={idx}
-                          onClick={() => setSelectedSize(s)}
+                          onClick={() => {
+                            setSelectedSize(s);
+                            const candidate = (producto?.variantes || []).find(
+                              (v: any) => v.talla === s && v.color === selectedColor
+                            ) || (producto?.variantes || []).find((v: any) => v.talla === s);
+                            if (candidate) {
+                              setSelectedColor(candidate.color || null);
+                              setSelectedVariantId(candidate.id);
+                            }
+                          }}
                           className={`w-12 px-0 py-3 border rounded-none text-sm cursor-pointer transition-all duration-200 ${selectedSize === s ? 'bg-black text-white' : 'bg-white text-gray-700 hover:bg-black hover:text-white'}`}
                         >
                           {s}
@@ -334,43 +362,17 @@ export default function ProductoDetalle() {
               </div>
 
             <div className="mb-10">
-              <label className="block text-sm font-medium mb-2"></label>
-
-              {producto.cantidad === 0 ? (
+              {stock === 0 ? (
                 <p className="text-red-500 text-sm">Sin stock disponible</p>
               ) : (
-                <div className="flex items-center border border-gray-300 w-fit overflow-hidden">
-                  
-                  <button
-                    type="button"
-                    onClick={() => setCantidad(Math.max(1, cantidad - 1))}
-                    className="px-4 py-2 text-xl text-black hover:text-gray-700 cursor-pointer"
-                    disabled={cantidad <= 1}
-                  >
-                    –
-                  </button>
-
-                  <span className="w-15 py-2 text-center text-sm font-medium text-black">
-                    {cantidad}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => setCantidad(Math.min(producto.cantidad, cantidad + 1))}
-                    className="px-4 py-2 text-xl text-black hover:text-gray-700 cursor-pointer"
-                    disabled={cantidad >= producto.cantidad}
-                  >
-                    +
-                  </button>
-
-                </div>
+                <p className="text-sm text-gray-700"></p>
               )}
             </div>
 
               <button
                 onClick={handleAgregarAlCarrito}
                 className="btn-animated w-full rounded"
-                disabled={producto.cantidad === 0}
+                disabled={stock === 0}
               >
                 Agregar al carrito
               </button> 

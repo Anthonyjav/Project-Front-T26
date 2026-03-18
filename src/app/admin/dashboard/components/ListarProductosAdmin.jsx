@@ -12,6 +12,9 @@ export default function ListarProductosAdmin() {
   const [nuevaImagenes, setNuevaImagenes] = useState([]);
   const nuevaImagenesURLs = useRef([]);
 
+  // Add variantes state for editing
+  const [variantes, setVariantes] = useState([]);
+
   // categorias disponibles para filtro y edición
   const [categorias, setCategorias] = useState([]);
 
@@ -97,6 +100,18 @@ export default function ListarProductosAdmin() {
       // store category id separately for easier binding in form
       categoriaId: producto.categoria?.id || '',
     });
+    // Set variantes: if product has variantes array, use it; else create from single fields
+    if (producto.variantes && Array.isArray(producto.variantes) && producto.variantes.length > 0) {
+      setVariantes(producto.variantes.map((v) => ({
+        id: v.id,
+        color: v.color || '',
+        talla: v.talla || '',
+        precio: v.precio || '',
+        cantidad: v.cantidad || '',
+      })));
+    } else {
+      setVariantes([{ color: '', talla: '', precio: '', cantidad: '' }]);
+    }
     nuevaImagenesURLs.current.forEach((url) => URL.revokeObjectURL(url));
     nuevaImagenesURLs.current = [];
     setNuevaImagenes([]);
@@ -106,6 +121,7 @@ export default function ListarProductosAdmin() {
   const cerrarModal = () => {
     setModalAbierto(false);
     setProductoEditando(null);
+    setVariantes([]);
     nuevaImagenesURLs.current.forEach((url) => URL.revokeObjectURL(url));
     nuevaImagenesURLs.current = [];
     setNuevaImagenes([]);
@@ -126,20 +142,39 @@ export default function ListarProductosAdmin() {
     setNuevaImagenes(files);
   };
 
+  const handleVarianteChange = (index, field, value) => {
+    const newVariantes = [...variantes];
+    newVariantes[index][field] = value;
+    setVariantes(newVariantes);
+  };
+
+  const agregarVariante = () => {
+    setVariantes([...variantes, { color: '', talla: '', precio: '', cantidad: '' }]);
+  };
+
+  const eliminarVariante = (index) => {
+    setVariantes(variantes.filter((_, i) => i !== index));
+  };
+
   const handleGuardar = async () => {
     try {
+      const variantesNormalizadas = (variantes || []).map((v) => ({
+        ...v,
+        precio: parseFloat(v.precio) || 0,
+        cantidad: parseInt(v.cantidad) || 0,
+      }));
+
       const formData = new FormData();
-      Object.entries(productoEditando).forEach(([k, v]) => {
-        if (v === null || v === undefined) return;
-        if (k === 'categoria') return; // the backend expects categoriaId, not the full object
-        if (k === 'activo' || k === 'seleccionado') {
-          // send boolean-like fields as 'true' or 'false' to match backend expectation
-          formData.append(k, v ? 'true' : 'false');
-        } else {
-          formData.append(k, v);
-        }
-      });
-      nuevaImagenes.forEach((file) => formData.append('imagenes', file));
+      formData.append('nombre', productoEditando.nombre);
+      formData.append('descripcion', productoEditando.descripcion || '');
+      formData.append('categoriaId', productoEditando.categoriaId || '');
+      formData.append('composicion', productoEditando.composicion || '');
+      formData.append('info', productoEditando.info || '');
+      formData.append('cuidados', productoEditando.cuidados || '');
+      formData.append('seleccionado', productoEditando.seleccionado === true ? 'true' : 'false');
+      formData.append('activo', productoEditando.activo === true ? 'true' : 'false');
+      formData.append('variantes', JSON.stringify(variantesNormalizadas));
+      nuevaImagenes.forEach((file) => formData.append('imagen', file));
       const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos/${productoEditando.id}`, {
         method: 'PUT',
@@ -150,7 +185,10 @@ export default function ListarProductosAdmin() {
       });
       if (!res.ok) throw new Error('Error al guardar el producto');
       const actualizado = await res.json();
-      setProductos((prev) => prev.map((p) => (p.id === actualizado.id ? actualizado : p)));
+      const productoActualizado = actualizado.producto ? { ...actualizado.producto, variantes: actualizado.variantes ?? actualizado.producto.variantes } : actualizado;
+      setProductos((prev) =>
+        prev.map((p) => (p.id === productoActualizado.id ? productoActualizado : p))
+      );
       cerrarModal();
     } catch (err) {
       alert(err.message);
@@ -222,7 +260,7 @@ export default function ListarProductosAdmin() {
                 {producto.nombre}
               </h3>
               <div className="flex items-center gap-3 mb-2">
-                <p className="text-sm font-bold text-gray-800">S/ {producto.precio}</p>
+                <p className="text-sm font-bold text-gray-800">S/ {Array.isArray(producto.variantes) && producto.variantes.length > 0 ? producto.variantes[0].precio : 'N/A'}</p>
                 <span className={`text-xs font-medium ${(producto.activo === true || producto.activo === '1' || producto.activo === 1) ? 'text-green-600' : 'text-red-600'}`}>
                   {(producto.activo === true || producto.activo === '1' || producto.activo === 1) ? 'Activo' : 'Inactivo'}
                 </span>
@@ -233,19 +271,16 @@ export default function ListarProductosAdmin() {
                     <strong>Categoría:</strong> {producto.categoria.nombre}
                   </li>
                 )}
-                {producto.color && (
+                {Array.isArray(producto.variantes) && producto.variantes.length > 0 && (
                   <li>
-                    <strong>Color:</strong> {producto.color}
-                  </li>
-                )}
-                {producto.talla && (
-                  <li>
-                    <strong>Talla:</strong> {producto.talla}
-                  </li>
-                )}
-                {producto.cantidad !== undefined && (
-                  <li>
-                    <strong>Cantidad:</strong> {producto.cantidad}
+                    <strong>Variantes:</strong>
+                    <ul className="ml-4 space-y-1">
+                      {producto.variantes.map((v, i) => (
+                        <li key={i}>
+                          {v.color} - {v.talla} - S/ {v.precio} - Cant: {v.cantidad}
+                        </li>
+                      ))}
+                    </ul>
                   </li>
                 )}
                 {producto.seleccionado && (
@@ -316,18 +351,6 @@ export default function ListarProductosAdmin() {
                   />
                 </label>
                 <label>
-                  <span className="text-gray-700">Precio:</span>
-                  <input
-                    type="number"
-                    name="precio"
-                    value={productoEditando.precio}
-                    onChange={handleCambio}
-                    step="0.01"
-                    className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
-                    required
-                  />
-                </label>
-                <label>
                   <span className="text-gray-700">Categoría:</span>
                   <select
                     name="categoriaId"
@@ -355,37 +378,6 @@ export default function ListarProductosAdmin() {
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label>
-                    <span className="text-gray-700">Color:</span>
-                    <input
-                      name="color"
-                      value={productoEditando.color || ''}
-                      onChange={handleCambio}
-                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                  </label>
-                  <label>
-                    <span className="text-gray-700">Talla:</span>
-                    <input
-                      name="talla"
-                      value={productoEditando.talla || ''}
-                      onChange={handleCambio}
-                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                  </label>
-              
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label>
-                    <span className="text-gray-700">Cantidad:</span>
-                    <input
-                      type="number"
-                      name="cantidad"
-                      value={productoEditando.cantidad || ''}
-                      onChange={handleCambio}
-                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
-                    />
-                  </label>
-                  <label>
                     <span className="text-gray-700">Composición:</span>
                     <input
                       name="composicion"
@@ -394,8 +386,6 @@ export default function ListarProductosAdmin() {
                       className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
                     />
                   </label>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <label>
                     <span className="text-gray-700">Info:</span>
                     <input
@@ -405,15 +395,106 @@ export default function ListarProductosAdmin() {
                       className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
                     />
                   </label>
-                  <label>
-                    <span className="text-gray-700">Cuidados:</span>
-                    <input
-                      name="cuidados"
-                      value={productoEditando.cuidados || ''}
-                      onChange={handleCambio}
-                      className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
-                    />
+                </div>
+                <label>
+                  <span className="text-gray-700">Cuidados:</span>
+                  <input
+                    name="cuidados"
+                    value={productoEditando.cuidados || ''}
+                    onChange={handleCambio}
+                    className="mt-1 w-full border border-gray-300 rounded px-3 py-2"
+                  />
+                </label>
+                {/* Variantes Section */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Variantes *
                   </label>
+                  <div className="border rounded p-3 bg-gray-50 max-h-96 overflow-auto">
+                    <div className="space-y-2">
+                      {variantes.map((variante, idx) => (
+                        <div key={idx} className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end bg-white p-2 rounded">
+                          <div>
+                            <label className="text-xs text-gray-600 block mb-1">Color</label>
+                            <div className="flex gap-1 items-center">
+                              <input
+                                type="color"
+                                value={variante.color.startsWith('#') ? variante.color : '#000000'}
+                                onChange={(e) => handleVarianteChange(idx, 'color', e.target.value)}
+                                className="w-15 h-8 border rounded cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Ej: Negro"
+                                value={variante.color}
+                                onChange={(e) => handleVarianteChange(idx, 'color', e.target.value)}
+                                className="flex-1 px-2 py-1 border rounded text-xs bg-white"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Talla</label>
+                            <select
+                              value={variante.talla}
+                              onChange={(e) => handleVarianteChange(idx, 'talla', e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-sm bg-white"
+                            >
+                              <option value="">Selecciona</option>
+                              <option value="XS">XS</option>
+                              <option value="S">S</option>
+                              <option value="M">M</option>
+                              <option value="L">L</option>
+                              <option value="XL">XL</option>
+                              <option value="35">35</option>
+                              <option value="36">36</option>
+                              <option value="37">37</option>
+                              <option value="38">38</option>
+                              <option value="39">39</option>
+                              <option value="40">40</option>
+                              <option value="Standard">Standard</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Precio</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              value={variante.precio}
+                              onChange={(e) => handleVarianteChange(idx, 'precio', e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-sm bg-gray-100"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Cantidad</label>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={variante.cantidad}
+                              onChange={(e) => handleVarianteChange(idx, 'cantidad', e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-sm bg-gray-100"
+                            />
+                          </div>
+                          {variantes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => eliminarVariante(idx)}
+                              className="col-span-2 md:col-span-4 px-2 py-1 text-red-600 text-xs hover:bg-red-50 rounded"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={agregarVariante}
+                    className="mt-2 px-3 py-1 bg-gray-800 text-white rounded text-sm"
+                  >
+                    + Agregar variante
+                  </button>
                 </div>
                 <label className="flex items-center gap-2">
                   <input

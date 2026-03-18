@@ -16,15 +16,25 @@ type Categoria = {
   slug?: string;
 };
 
+type Variante = {
+  id: number;
+  precio?: number | null;
+  talla?: string | null;
+  color?: string | null;
+  imagen?: string[];
+};
+
 type ProductoCarrito = {
   id: number;
   talla: string;
   color: string;
   cantidad: number;
+  varianteId?: number | null;
+  variante?: Variante | null;
   producto: {
     nombre: string;
-    imagen: string[];
-    precio: number;
+    imagen?: string[];
+    precio?: number;
   };
 };
 
@@ -56,6 +66,17 @@ export default function Navbar() {
   
 
   const router = useRouter();
+
+  const ajustarURL = (url?: string) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const base = process.env.NEXT_PUBLIC_API_URL || 'https://api.sgstudio.shop';
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
+  const getItemPrecio = (item: ProductoCarrito) =>
+    Number(item?.variante?.precio ?? item?.producto?.precio ?? 0);
+
   const onSearchKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchTerm.trim().length > 2) {
       router.push(`/buscar?query=${encodeURIComponent(searchTerm.trim())}`);
@@ -617,19 +638,23 @@ const bgClass = scrolled || hovered || showSearch
     carrito.map((item) => (
       <div key={item.id} className="flex gap-4 items-center border-b pb-4 relative">
         <img
-          src={item.producto.imagen[0]}
-          alt={item.producto.nombre}
+          src={ajustarURL(item.producto?.imagen?.[0]) || 'https://via.placeholder.com/64?text=IMG'}
+          alt={item.producto.nombre || 'Producto'}
           className="w-16 h-16 object-cover rounded"
         />
         <div className="flex flex-col flex-1">
           <span className="text-sm font-semibold text-black">{item.producto.nombre}</span>
           <span className="text-xs text-gray-600 flex items-center gap-2">
-            Talla: {item.talla} | Color:
-            <span
-              className="w-4 h-4 rounded border border-gray-300"
-              style={{ backgroundColor: item.color }}
-              title={item.color}
-            />
+            Talla: {item.talla || item.variante?.talla || '—'} | Color:
+            {item.color ? (
+              <span
+                className="w-4 h-4 rounded border border-gray-300 inline-block"
+                style={{ backgroundColor: item.color }}
+                title={item.color}
+              />
+            ) : (
+              <span className="text-gray-500">—</span>
+            )}
           </span>
 
 
@@ -654,7 +679,9 @@ const bgClass = scrolled || hovered || showSearch
             </button>
           </div>
 
-          <span className="mt-1 text-sm text-gray-800 font-bold">PEN {item.producto.precio}</span>
+          <span className="mt-1 text-sm text-gray-800 font-bold">
+            PEN {getItemPrecio(item).toFixed(2)}
+          </span>
         </div>
 
         <button
@@ -680,10 +707,9 @@ const bgClass = scrolled || hovered || showSearch
       <span>Total:</span>
       <span>
         PEN{' '}
-        {carrito.reduce(
-          (acc, item) => acc + item.cantidad * item.producto.precio,
-          0
-        ).toFixed(2)}
+        {carrito
+          .reduce((acc, item) => acc + item.cantidad * getItemPrecio(item), 0)
+          .toFixed(2)}
       </span>
     </div>
     <button

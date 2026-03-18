@@ -5,15 +5,20 @@ import { useEffect, useState } from 'react';
 export default function CrearProductoForm() {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
-  const [precio, setPrecio] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [categorias, setCategorias] = useState([]);
   const [imagenes, setImagenes] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [mensaje, setMensaje] = useState('');
-  const [coloresSeleccionados, setColoresSeleccionados] = useState([]);
-  const [tallasSeleccionadas, setTallasSeleccionadas] = useState([]);
-  const [cantidad, setCantidad] = useState('');
+
+  const [variantes, setVariantes] = useState([
+    {
+      color: '',
+      precio: '',
+      tallas: [{ talla: '', cantidad: '' }]
+    }
+  ]);
+
   const [composicion, setComposicion] = useState('');
   const [info, setInfo] = useState('');
   const [cuidados, setCuidados] = useState('');
@@ -21,13 +26,14 @@ export default function CrearProductoForm() {
   useEffect(() => {
     const fetchCategorias = async () => {
       try {
-        const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL}/categorias`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`);
         const data = await res.json();
         setCategorias(data);
       } catch (error) {
         console.error('Error al cargar categorías:', error);
       }
     };
+
     fetchCategorias();
   }, []);
 
@@ -48,31 +54,54 @@ export default function CrearProductoForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!nombre || !precio || !categoriaId || coloresSeleccionados.length === 0 || tallasSeleccionadas.length === 0 || !cantidad || !composicion || !info || !cuidados) {
-      setMensaje('Por favor, completa los campos requeridos');
+    if (
+      !nombre ||
+      !categoriaId ||
+      variantes.some(
+        (v) =>
+          !v.color ||
+          !v.precio ||
+          Number.isNaN(Number(v.precio)) ||
+          v.tallas.length === 0 ||
+          v.tallas.some(
+            (t) => !t.talla || !t.cantidad || Number.isNaN(Number(t.cantidad))
+          )
+      ) ||
+      !composicion ||
+      !info ||
+      !cuidados
+    ) {
+      setMensaje('Por favor, completa todos los campos requeridos');
       return;
     }
 
-    // Convertimos los arrays a strings separados por comas para el envío
-    const color = coloresSeleccionados.join(',');
-    const talla = tallasSeleccionadas.join(',');
+    const variantesPayload = variantes.flatMap((v) =>
+      v.tallas.map((t) => ({
+        color: v.color,
+        precio: Number(v.precio),
+        talla: t.talla,
+        cantidad: Number(t.cantidad),
+      }))
+    );
 
     const formData = new FormData();
+
     formData.append('nombre', nombre);
     formData.append('descripcion', descripcion);
-    formData.append('precio', precio);
     formData.append('categoriaId', categoriaId);
-    formData.append('color', color);
-    formData.append('talla', talla);
-    formData.append('cantidad', cantidad);
     formData.append('composicion', composicion);
     formData.append('info', info);
     formData.append('cuidados', cuidados);
+    formData.append('seleccionado', 'false');
+    formData.append('activo', 'true');
+    formData.append('variantes', JSON.stringify(variantesPayload));
+
     imagenes.forEach((img) => formData.append('imagen', img));
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch( `${process.env.NEXT_PUBLIC_API_URL}/productos`, {
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -80,83 +109,85 @@ export default function CrearProductoForm() {
         body: formData,
       });
 
-      const data = await res.json();
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        // ignore; server may not return JSON on error
+      }
+
       if (!res.ok) {
-        setMensaje(data.error || 'Error al crear producto');
+        const msg = data?.error || `Error ${res.status}: ${res.statusText}`;
+        setMensaje(msg);
         return;
       }
 
       setMensaje(`Producto "${data.nombre}" creado con éxito!`);
+
       setNombre('');
       setDescripcion('');
-      setPrecio('');
       setCategoriaId('');
-      setColoresSeleccionados([]);
-      setTallasSeleccionadas([]);
-      setCantidad('');
+      setVariantes([
+        {
+          color: '',
+          precio: '',
+          tallas: [{ talla: '', cantidad: '' }]
+        }
+      ]);
       setComposicion('');
       setInfo('');
       setCuidados('');
       setImagenes([]);
       setPreviews([]);
+
     } catch (error) {
       setMensaje('Error al conectar con el servidor');
       console.error(error);
     }
   };
 
-  // --- Opciones para seleccionar ---
-  const initialColors = [
-    { name: 'Rojo', hex: '#DC2626' },
-    { name: 'Azul', hex: '#2563EB' },
-    { name: 'Verde', hex: '#16A34A' },
-    { name: 'Negro', hex: '#000000' },
-    { name: 'Blanco', hex: '#FFFFFF' },
-    { name: 'Gris', hex: '#4B5563' },
-  ];
-  const [availableColors, setAvailableColors] = useState(initialColors);
-  const [newColorHex, setNewColorHex] = useState('#000000');
-  const [newColorName, setNewColorName] = useState('');
-  const [colorMessageLocal, setColorMessageLocal] = useState('');
-  const availableSizes = ['XS', 'S', 'M', 'L', 'XL', '35', '36', '37', '38', '39', '40','Standard'];
-
-  const handleColorChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setColoresSeleccionados((prev) => [...prev, value]);
-    } else {
-      setColoresSeleccionados((prev) => prev.filter((hex) => hex !== value));
-    }
+  const handleColorChange = (index, value) => {
+    const newVariantes = [...variantes];
+    newVariantes[index].color = value;
+    setVariantes(newVariantes);
   };
 
-  const handleTallaChange = (e) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setTallasSeleccionadas((prev) => [...prev, value]);
-    } else {
-      setTallasSeleccionadas((prev) =>
-        prev.filter((talla) => talla !== value)
-      );
-    }
+  const handlePrecioChange = (index, value) => {
+    const newVariantes = [...variantes];
+    newVariantes[index].precio = value;
+    setVariantes(newVariantes);
   };
 
-  // Permite agregar un color personalizado a la paleta
-  const handleAddColor = () => {
-    const hex = (newColorHex || '#000000').toUpperCase();
-    const name = newColorName.trim() || hex;
-    if (availableColors.some((c) => c.hex.toUpperCase() === hex)) {
-      setColorMessageLocal('Este color ya está en la paleta');
-      setTimeout(() => setColorMessageLocal(''), 2500);
-      return;
-    }
-    const newColor = { name, hex };
-    setAvailableColors((prev) => [newColor, ...prev]);
-    setColoresSeleccionados((prev) => [...prev, hex]);
-    setNewColorName('');
-    setNewColorHex('#000000');
-    setColorMessageLocal('Color agregado');
-    setTimeout(() => setColorMessageLocal(''), 2000);
-  }; 
+  const handleTallaChange = (colorIndex, tallaIndex, field, value) => {
+    const newVariantes = [...variantes];
+    newVariantes[colorIndex].tallas[tallaIndex][field] = value;
+    setVariantes(newVariantes);
+  };
+
+  const agregarColor = () => {
+    setVariantes([
+      ...variantes,
+      { color: '', tallas: [{ talla: '', precio: '', cantidad: '' }] },
+    ]);
+  };
+
+  const eliminarColor = (index) => {
+    setVariantes(variantes.filter((_, i) => i !== index));
+  };
+
+  const agregarTalla = (colorIndex) => {
+    const newVariantes = [...variantes];
+    newVariantes[colorIndex].tallas.push({ talla: '', precio: '', cantidad: '' });
+    setVariantes(newVariantes);
+  };
+
+  const eliminarTalla = (colorIndex, tallaIndex) => {
+    const newVariantes = [...variantes];
+    newVariantes[colorIndex].tallas = newVariantes[colorIndex].tallas.filter(
+      (_, i) => i !== tallaIndex
+    );
+    setVariantes(newVariantes);
+  };
 
   return (
     <div className="bg-white rounded-xl p-8 shadow-md mt-12 max-w-4xl mx-auto">
@@ -164,7 +195,11 @@ export default function CrearProductoForm() {
         Crear Nuevo Producto
       </h3>
 
-      <form onSubmit={handleSubmit} encType="multipart/form-data" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form
+        onSubmit={handleSubmit}
+        encType="multipart/form-data"
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      >
         {/* Columna 1 */}
         <div className="space-y-4">
           <input
@@ -173,7 +208,7 @@ export default function CrearProductoForm() {
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Nombre *"
             required
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           />
 
           <textarea
@@ -181,10 +216,11 @@ export default function CrearProductoForm() {
             onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Descripción"
             rows={3}
-            maxLength={255} 
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            maxLength={255}
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           />
-          <p className="text-sm text-gray-500 mt-1 text-right">
+
+          <p className="text-sm text-gray-500 text-right">
             {descripcion.length}/255 caracteres
           </p>
 
@@ -193,7 +229,7 @@ export default function CrearProductoForm() {
             onChange={(e) => setComposicion(e.target.value)}
             placeholder="Composición"
             rows={2}
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           />
 
           <textarea
@@ -201,119 +237,152 @@ export default function CrearProductoForm() {
             onChange={(e) => setInfo(e.target.value)}
             placeholder="Información adicional"
             rows={2}
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           />
         </div>
 
-        {/* Columna 2 */}
+        {/* Columna 2 - Variantes */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Colores *</label>
-            <div className="grid grid-cols-3 gap-2 p-2 rounded-md border border-gray-200 bg-gray-100">
-              {availableColors.map((color) => (
-                <label key={color.hex} className="flex items-center space-x-2 text-sm text-gray-800 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    value={color.hex}
-                    checked={coloresSeleccionados.includes(color.hex)}
-                    onChange={handleColorChange}
-                    className="sr-only peer"
-                  />
+            <label className="block text-sm font-medium mb-2">
+              Variantes *
+            </label>
+            <div className="border rounded p-3 bg-gray-50 max-h-96 overflow-auto">
+              <div className="space-y-4">
+                {variantes.map((grupo, idx) => (
+                  <div key={idx} className="bg-white p-3 rounded shadow-sm">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-600 block mb-1">Color</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="color"
+                            value={grupo.color.startsWith('#') ? grupo.color : '#000000'}
+                            onChange={(e) => handleColorChange(idx, e.target.value)}
+                            className="w-15 h-8 border rounded cursor-pointer"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Ej: Negro"
+                            value={grupo.color}
+                            onChange={(e) => handleColorChange(idx, e.target.value)}
+                            className="flex-1 px-2 py-1 border rounded text-xs bg-white"
+                          />
+                        </div>
+                      </div>
 
-                  <span
-                    className={`w-6 h-6 rounded-full inline-block ${color.hex.toUpperCase() === '#FFFFFF' ? 'border border-gray-400' : ''} peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-indigo-500`}
-                    style={{ backgroundColor: color.hex }}
-                    aria-hidden
-                  ></span>
+                      <div className="flex-1">
+                        <label className="text-xs text-gray-600 block mb-1">Precio (por color)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={grupo.precio}
+                          onChange={(e) => handlePrecioChange(idx, e.target.value)}
+                          className="w-full px-2 py-1 border rounded text-sm bg-gray-100"
+                        />
+                      </div>
 
-                  <span className="text-xs">{color.name}</span>
-                </label>
-              ))}
+                      {variantes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => eliminarColor(idx)}
+                          className="px-3 py-1 text-red-600 text-xs hover:bg-red-50 rounded"
+                        >
+                          Eliminar color
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="mt-3 space-y-2">
+                      {grupo.tallas.map((talla, tIdx) => (
+                        <div key={tIdx} className="grid grid-cols-2 md:grid-cols-4 gap-2 items-end bg-gray-50 p-2 rounded">
+                          <div>
+                            <label className="text-xs text-gray-600">Talla</label>
+                            <select
+                              value={talla.talla}
+                              onChange={(e) => handleTallaChange(idx, tIdx, 'talla', e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-sm bg-white"
+                            >
+                              <option value="">Selecciona</option>
+                              <option value="XS">XS</option>
+                              <option value="S">S</option>
+                              <option value="M">M</option>
+                              <option value="L">L</option>
+                              <option value="XL">XL</option>
+                              <option value="35">35</option>
+                              <option value="36">36</option>
+                              <option value="37">37</option>
+                              <option value="38">38</option>
+                              <option value="39">39</option>
+                              <option value="40">40</option>
+                              <option value="Standard">Standard</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Cantidad</label>
+                            <input
+                              type="number"
+                              placeholder="0"
+                              value={talla.cantidad}
+                              onChange={(e) => handleTallaChange(idx, tIdx, 'cantidad', e.target.value)}
+                              className="w-full px-2 py-1 border rounded text-sm bg-gray-100"
+                            />
+                          </div>
+                          {grupo.tallas.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => eliminarTalla(idx, tIdx)}
+                              className="col-span-2 md:col-span-4 px-2 py-1 text-red-600 text-xs hover:bg-red-50 rounded"
+                            >
+                              Eliminar talla
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => agregarTalla(idx)}
+                      className="mt-2 px-3 py-1 bg-gray-800 text-white rounded text-sm"
+                    >
+                      + Agregar talla
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                type="color"
-                value={newColorHex}
-                onChange={(e) => setNewColorHex(e.target.value)}
-                className="w-10 h-10 p-0 border rounded"
-                aria-label="Seleccionar color"
-              />
-
-              <input
-                type="text"
-                value={newColorName}
-                onChange={(e) => setNewColorName(e.target.value)}
-                placeholder="Nombre (opcional)"
-                className="px-2 py-1 rounded border w-full text-sm"
-              />
-
-              <button
-                type="button"
-                onClick={handleAddColor}
-                className="px-3 py-2 bg-gray-800 text-white rounded text-sm"
-              >
-                Agregar
-              </button>
-            </div>
-
-            {colorMessageLocal && <p className="text-xs text-gray-600 mt-1">{colorMessageLocal}</p>}
+            <button
+              type="button"
+              onClick={agregarColor}
+              className="mt-2 px-3 py-1 bg-gray-800 text-white rounded text-sm"
+            >
+              + Agregar color
+            </button>
           </div>
-
-          <input
-            type="number"
-            value={cantidad}
-            onChange={(e) => setCantidad(e.target.value)}
-            placeholder="Cantidad *"
-            required
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
-          />
 
           <textarea
             value={cuidados}
             onChange={(e) => setCuidados(e.target.value)}
             placeholder="Cuidados"
             rows={2}
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tallas *</label>
-            <div className="grid grid-cols-3 gap-2 p-2 rounded-md border border-gray-200 bg-gray-100">
-              {availableSizes.map((talla) => (
-                <label key={talla} className="flex items-center space-x-2 text-sm text-gray-800">
-                  <input
-                    type="checkbox"
-                    value={talla}
-                    checked={tallasSeleccionadas.includes(talla)}
-                    onChange={handleTallaChange}
-                    className="rounded border-gray-300 text-gray-600 shadow-sm focus:border-gray-300 focus:ring focus:ring-gray-200 focus:ring-opacity-50"
-                  />
-                  <span>{talla}</span>
-                </label>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Campos globales */}
         <div className="md:col-span-2 space-y-4">
-          <input
-            type="number"
-            step="0.01"
-            value={precio}
-            onChange={(e) => setPrecio(e.target.value)}
-            placeholder="Precio *"
-            required
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
-          />
-
           <select
             value={categoriaId}
             onChange={(e) => setCategoriaId(e.target.value)}
             required
-            className="w-full px-4 py-2 rounded-md border border-gray-200 bg-gray-100 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="w-full px-4 py-2 rounded-md border bg-gray-100"
           >
-            <option value="">Selecciona una categoría *</option>
+            <option value="">
+              Selecciona una categoría
+            </option>
+
             {categorias.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.nombre}
@@ -326,17 +395,16 @@ export default function CrearProductoForm() {
             accept="image/*"
             multiple
             onChange={(e) => setImagenes(Array.from(e.target.files))}
-            className="w-full text-sm text-gray-700"
+            className="w-full"
           />
 
           {previews.length > 0 && (
-            <div className="flex flex-wrap gap-4 mt-2">
-              {previews.map((src, idx) => (
+            <div className="flex flex-wrap gap-4">
+              {previews.map((src, i) => (
                 <img
-                  key={idx}
+                  key={i}
                   src={src}
-                  alt={`preview-${idx}`}
-                  className="w-32 h-32 object-cover border border-gray-300 rounded"
+                  className="w-32 h-32 object-cover rounded border"
                 />
               ))}
             </div>
@@ -344,12 +412,16 @@ export default function CrearProductoForm() {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-gray-800 text-white rounded-md shadow hover:bg-gray-700 transition"
+            className="w-full py-2 bg-gray-800 text-white rounded"
           >
             Crear Producto
           </button>
 
-          {mensaje && <p className="text-center mt-4 text-sm text-gray-700">{mensaje}</p>}
+          {mensaje && (
+            <p className="text-center text-sm mt-2">
+              {mensaje}
+            </p>
+          )}
         </div>
       </form>
     </div>
