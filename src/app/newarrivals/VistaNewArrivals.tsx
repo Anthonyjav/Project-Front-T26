@@ -59,6 +59,13 @@ export default function NewArrivalsPage() {
         : [...prev, nombre]
     )
   }
+   const getPrecio = (p: any) => {
+    const base = Array.isArray(p?.variantes) && p.variantes.length
+      ? p.variantes[0]?.precio ?? p.precio
+      : p?.precio;
+    const num = Number(base);
+    return Number.isFinite(num) ? num : 0;
+  };
 
   const productosFiltrados = productos.filter(
     p =>
@@ -194,7 +201,7 @@ export default function NewArrivalsPage() {
                   </div>
                   <div className="p-3 sm:p-4 text-center">
                     <p className="text-sm font-medium text-black truncate">{producto.nombre}</p>
-                    <p className="text-sm font-normal text-gray-500">S/ {producto.precio}</p>
+                    <p className="text-sm font-normal text-gray-500">S/ {getPrecio(producto).toFixed(2)}</p>
                   </div>
                 </div>
               </Link>
