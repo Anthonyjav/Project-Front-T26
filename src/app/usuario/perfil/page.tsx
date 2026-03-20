@@ -508,7 +508,7 @@ export default function PerfilUsuario() {
           </div>
         )}
 
-        <div className="space-y-4">
+        {/* <div className="space-y-4">
           <h2 className="text-xl font-semibold uppercase">Carrito de compras</h2>
           {loadingCarrito ? (
             <p className="text-gray-500">Cargando productos...</p>
@@ -572,8 +572,8 @@ export default function PerfilUsuario() {
               </button>
             </div>
           )}
-        </div>
-        <div className="space-y-4">
+        </div> */}
+        {/* <div className="space-y-4">
           <h2 className="text-xl font-semibold uppercase">Mis órdenes</h2>
           {ordenes.length === 0 ? (
             <p className="text-gray-600">Aún no has realizado ninguna orden.</p>
@@ -626,9 +626,9 @@ export default function PerfilUsuario() {
             </div>
 
           )}
-        </div>
+        </div> */}
 
-        <div className="border-t border-gray-300 pt-6">
+        {/* <div className="border-t border-gray-300 pt-6">
           <h2 className="text-xl font-semibold uppercase mb-4">Mis reclamos</h2>
 
           {reclamos.length === 0 ? (
@@ -649,7 +649,7 @@ export default function PerfilUsuario() {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
 
         <div className="border-t border-gray-300 pt-6 pb-15">

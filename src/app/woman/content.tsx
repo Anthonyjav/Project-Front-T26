@@ -63,6 +63,14 @@ export default function WomanContent() {
       p.imagen.length > 0
   )
 
+  const getPrecio = (p: any) => {
+    const base = Array.isArray(p?.variantes) && p.variantes.length
+      ? p.variantes[0]?.precio ?? p.precio
+      : p?.precio;
+    const num = Number(base);
+    return Number.isFinite(num) ? num : 0;
+  };
+
   const columnas =
     vista === 'lista'
       ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6'
@@ -195,7 +203,9 @@ export default function WomanContent() {
                   </div>
                   <div className="p-3 sm:p-4 text-center">
                     <p className="text-sm font-medium text-black truncate">{prod.nombre}</p>
-                    <p className="text-sm font-normal text-gray-500">S/ {prod.precio}</p>
+                    <p className="text-sm font-normal text-gray-500">
+                      S/ {getPrecio(prod).toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </Link>

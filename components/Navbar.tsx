@@ -376,14 +376,17 @@ const bgClass = scrolled || hovered || showSearch
             <button ref={buttonRef} onClick={() => setShowSearch(v => !v)} aria-label="Buscar" className="hover:text-gray-400">
               <FaSearch />
             </button>
-            <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
-              <FaShoppingBag />
-              {carrito.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-gray-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                  {carrito.reduce((t, i) => t + i.cantidad, 0)}
-                </span>
-              )}
-            </button>
+            {/* Botón de carrito oculto temporalmente: quitar el `false &&` para reactivar */}
+            {false && (
+              <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
+                <FaShoppingBag />
+                {carrito.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-gray-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {carrito.reduce((t, i) => t + i.cantidad, 0)}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
 
@@ -595,14 +598,17 @@ const bgClass = scrolled || hovered || showSearch
             <button ref={buttonRef} onClick={() => setShowSearch(!showSearch)} aria-label="Buscar" className="hover:text-gray-400">
               <FaSearch />
             </button>
-            <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
-              <FaShoppingBag />
-              {Array.isArray(carrito) && carrito.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-gray-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {carrito.reduce((total, item) => total + item.cantidad, 0)}
-                </span>
-              )}
-            </button>
+            {/* Botón de carrito oculto temporalmente: quitar el `false &&` para reactivar */}
+            {false && (
+              <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
+                <FaShoppingBag />
+                {Array.isArray(carrito) && carrito.length > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-gray-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {carrito.reduce((total, item) => total + item.cantidad, 0)}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </nav>
