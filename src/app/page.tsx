@@ -13,8 +13,7 @@ function optimizeImage(url: string) {
   if (!url.includes("/upload/")) return url
   return url.replace("/upload/", "/upload/f_auto,q_auto,w_600/")
 }
-
-const slides = ['/images/LOGO.jpg', '/images/LOGO.jpg']
+const slides = ['/images/Portadaweb3.png', '/images/Portadaweb3.png']
 
 function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: number }) {
   const [current, setCurrent] = useState(0)
@@ -28,7 +27,7 @@ function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: n
 
   return (
     <div className="relative">
-      <section className="w-full h-screen relative overflow-hidden">
+      <section className="w-full relative overflow-hidden min-h-[90vh] md:min-h-[105vh] lg:min-h-[120vh]">
         <Image
           src={slides[current]}
           alt={`Slide ${current + 1}`}

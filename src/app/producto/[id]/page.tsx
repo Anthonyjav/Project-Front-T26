@@ -151,10 +151,11 @@ export default function ProductoDetalle() {
 
   const handleAgregarAlCarrito = async () => {
     const usuarioStr = typeof window !== 'undefined' ? localStorage.getItem('usuario') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const usuario = usuarioStr ? JSON.parse(usuarioStr) : null;
     const userId = usuario?.id;
 
-    if (!userId) {
+    if (!userId || !token) {
       mostrarToast('Debe iniciar sesión para agregar productos al carrito');
       router.push('/login');
       return;
@@ -174,7 +175,10 @@ export default function ProductoDetalle() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/carrito/add`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           usuarioId: userId,
           productoId: producto.id,
@@ -187,7 +191,12 @@ export default function ProductoDetalle() {
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`Error al agregar al carrito: ${errorText}`);
+        if (res.status === 401 || res.status === 403) {
+          mostrarToast('Debes iniciar sesión o registrarte para agregar productos');
+          router.push('/login');
+          return;
+        }
+        throw new Error(`Error al agregar al carrito (${res.status}): ${errorText}`);
       }
 
       mostrarToast('Producto agregado al carrito');
@@ -371,9 +380,7 @@ export default function ProductoDetalle() {
                 <p className="text-sm text-gray-700"></p>
               )}
             </div>
-
-              {/* Botón de compra oculto temporalmente: activar quitando el wrapper `false &&` */}
-              {false && (
+                {/* Descripción 
                 <button
                   onClick={handleAgregarAlCarrito}
                   className="btn-animated w-full rounded"
@@ -381,7 +388,7 @@ export default function ProductoDetalle() {
                 >
                   Agregar al carrito
                 </button>
-              )}
+           
                 {/* Descripción */}
                 <div className="border-t pt-4">
                   <button
@@ -623,7 +630,7 @@ export default function ProductoDetalle() {
                     </div>
                     <div className="p-3 sm:p-4 text-center">
                       <h3 className="mt-2 text-black font-medium truncate">{item.nombre}</h3>
-                      <p className="text-sm font-normal text-gray-500">S/ {item.precio}</p>
+                      <p className="font-medium text-2xl text-gray-500 mb-10">S/ {precio}</p>
                     </div>
                   </div>
                 ))}

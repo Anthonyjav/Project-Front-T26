@@ -493,7 +493,7 @@ useEffect(() => {
                 <label className="text-base font-semibold text-gray-800">Ubicación</label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out" 
+                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out" 
                     name="department"
                     value={form.department}
                     onChange={handleChange}>
@@ -503,7 +503,7 @@ useEffect(() => {
                     ))}
                   </select>
 
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
+                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
                     name="state"
                     value={form.state}
                     onChange={handleChange}>
@@ -513,7 +513,7 @@ useEffect(() => {
                     ))}
                   </select>
 
-                  <select className="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white  appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
+                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white  appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
                     name="city"
                     value={form.city}
                     onChange={handleChange}>
@@ -530,7 +530,7 @@ useEffect(() => {
                   onChange={(e) => setForm({ ...form, reference: e.target.value })} />
 
                 <select
-                  className="w-full px-3 py-2 border border-gray-200 rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
+                  className="w-full px-3 py-2 border text-black border-gray-200 rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
                   value={form.shippingMethod}
                   onChange={(e) => setForm({ ...form, shippingMethod: e.target.value })}
                 >
