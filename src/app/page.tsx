@@ -13,7 +13,7 @@ function optimizeImage(url: string) {
   if (!url.includes("/upload/")) return url
   return url.replace("/upload/", "/upload/f_auto,q_auto,w_600/")
 }
-const slides = ['/images/Portadaweb3.png', '/images/Portada - web 3.png']
+const slides = ['/images/Portadaweb3.png', '/images/LOGO.jpg', ]
 
 function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: number }) {
   const [current, setCurrent] = useState(0)
