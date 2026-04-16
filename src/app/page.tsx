@@ -13,7 +13,7 @@ function optimizeImage(url: string) {
   if (!url.includes("/upload/")) return url
   return url.replace("/upload/", "/upload/f_auto,q_auto,w_600/")
 }
-const slides = ['/images/Portadaweb3.png', '/images/Portadaweb3.png']
+const slides = ['/images/Portadaweb3.png', '/images/Portada - web 3.png']
 
 function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: number }) {
   const [current, setCurrent] = useState(0)
@@ -25,18 +25,43 @@ function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: n
     return () => clearInterval(timer)
   }, [interval, slides.length])
 
+  useEffect(() => {
+  slides.forEach((src) => {
+    const img = new window.Image()
+    img.src = src
+  })
+}, [])
+
   return (
     <div className="relative">
-      <section className="w-full relative overflow-hidden min-h-[90vh] md:min-h-[105vh] lg:min-h-[120vh]">
-        <Image
-          src={slides[current]}
-          alt={`Slide ${current + 1}`}
-          fill
-          className="object-cover transition-all duration-500"
-          priority
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-          <h5 className="text-white text-4xl font-bold drop-shadow-lg"></h5>
+      <section className="w-full relative overflow-hidden h-[70vh] md:h-[80vh] lg:h-[100vh]">
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-out
+              ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}
+            `}
+          >
+            <Image 
+              src={slide}
+              alt={`Slide ${index + 1}`}
+              fill
+              sizes='100vw'
+              className={`object-cover will-change-transform transition-transform duration-1000 ease-out
+                ${index === current ? 'scale-100' : 'scale-105'}
+              `}
+              priority
+              quality={75}
+              placeholder="empty"
+            />
+          </div>
+        ))}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20">
+          <h5 className="text-white text-4xl font-bold drop-shadow-lg">
+            {/* Aquí puedes poner texto */}
+          </h5>
         </div>
       </section>
 
