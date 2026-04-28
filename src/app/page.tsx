@@ -9,11 +9,10 @@ import SplashScreen from '../../components/SplashScreen'
 
 import { useRouter } from 'next/navigation'
 
-function optimizeImage(url: string) {
-  if (!url.includes("/upload/")) return url
-  return url.replace("/upload/", "/upload/f_auto,q_auto,w_600/")
-}
-const slides = ['/images/Portadaweb3.png', '/images/LOGO.jpg', ]
+const slides = [
+  'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341764/Portadaweb3_dxaxq6.png',
+  'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341965/LOGO_dsfcxz.jpg',
+]
 
 function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: number }) {
   const [current, setCurrent] = useState(0)
@@ -237,9 +236,10 @@ export default function Home() {
                       <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition duration-300">
                         <div className="relative w-full h-96 group">
                           <img
-                            src={optimizeImage(imagen[0])}
+                            src={imagen[0]}
                             alt={nombre}
-                            loading="lazy"
+                            fetchPriority="high"
+                            loading="eager"
                             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
                               imagen[1] ? 'group-hover:opacity-0' : ''
                             }`}
@@ -247,7 +247,7 @@ export default function Home() {
 
                           {imagen[1] && (
                             <img
-                              src={optimizeImage(imagen[1])}
+                              src={imagen[1]}
                               alt={`${nombre} alternativa`}
                               loading="lazy"
                               className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
