@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import imageCompression from 'browser-image-compression';
 
 export default function CrearProductoForm() {
   const [nombre, setNombre] = useState('');
@@ -10,6 +11,7 @@ export default function CrearProductoForm() {
   const [imagenes, setImagenes] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [mensaje, setMensaje] = useState('');
+  const [comprimiendo, setComprimiendo] = useState(false);
 
   const [variantes, setVariantes] = useState([
     {
@@ -50,6 +52,27 @@ export default function CrearProductoForm() {
       newPreviews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imagenes]);
+
+  const handleImageChange = async (e) => {
+  const files = Array.from(e.target.files);
+  const options = {
+    maxSizeMB: 3,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+  };
+  try {
+    setComprimiendo(true);
+    const compressed = await Promise.all(
+      files.map((f) => imageCompression(f, options))
+    );
+    setImagenes(compressed);
+  } catch (err) {
+    console.error('Error comprimiendo imágenes:', err);
+    setMensaje('Error al procesar las imágenes');
+  } finally {
+    setComprimiendo(false);
+  }
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,8 +145,7 @@ export default function CrearProductoForm() {
         return;
       }
 
-      setMensaje(`Producto "${data.nombre}" creado con éxito!`);
-
+      setMensaje(`Producto "${data.producto?.nombre || data.nombre}" creado con éxito!`);
       setNombre('');
       setDescripcion('');
       setCategoriaId('');
@@ -394,7 +416,7 @@ export default function CrearProductoForm() {
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => setImagenes(Array.from(e.target.files))}
+            onChange={handleImageChange}
             className="w-full"
           />
 
