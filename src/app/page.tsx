@@ -9,13 +9,29 @@ import SplashScreen from '../../components/SplashScreen'
 
 import { useRouter } from 'next/navigation'
 
-const slides = [
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768)
+  }, [])
+  return isMobile
+}
+
+const rawSlides = [
   'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341764/Portadaweb3_dxaxq6.png',
   'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341965/LOGO_dsfcxz.jpg',
 ]
 
-function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: number }) {
+function optimizeCloudinary(url: string, width: number) {
+  if (!url.includes('cloudinary.com')) return url
+  return url.replace('/upload/', `/upload/w_${width},q_auto,f_auto/`)
+}
+
+
+function Slideshow({ interval = 5000 }: { interval?: number }) {
   const [current, setCurrent] = useState(0)
+  const isMobile = useIsMobile()
+  const slides = rawSlides.map(url => optimizeCloudinary(url, isMobile ? 640 : 1440))
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -49,9 +65,11 @@ function Slideshow({ slides, interval = 5000 }: { slides: string[]; interval?: n
               className={`object-cover will-change-transform transition-transform duration-1000 ease-out
                 ${index === current ? 'scale-100' : 'scale-105'}
               `}
-              priority
-              quality={75}
-              placeholder="empty"
+              priority={index === 0}
+              quality={index === 0 ? 60 : 40}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AJQAB/9k="
+             
             />
           </div>
         ))}
@@ -182,7 +200,7 @@ export default function Home() {
   return (
     <div className="relative">
       <main className={`transition-all duration-700 ${showSplash ? 'blur-sm pointer-events-none' : ''}`}>
-        <Slideshow slides={slides} />
+        <Slideshow />
         {error && <p className="p-12 text-center text-red-600">{error}</p>}
         {!error && loading && <p className="p-12 text-center text-lg">Cargando productos...</p>}
 
@@ -235,22 +253,26 @@ export default function Home() {
                     >
                       <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition duration-300">
                         <div className="relative w-full h-96 group">
-                          <img
+                          <Image
                             src={imagen[0]}
                             alt={nombre}
-                            fetchPriority="high"
-                            loading="eager"
-                            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                            quality={70}
+                            className={`object-cover transition-opacity duration-300 ${
                               imagen[1] ? 'group-hover:opacity-0' : ''
                             }`}
                           />
 
                           {imagen[1] && (
-                            <img
+                            <Image
                               src={imagen[1]}
                               alt={`${nombre} alternativa`}
+                              fill
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                              quality={70}
                               loading="lazy"
-                              className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                              className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             />
                           )}
 
@@ -289,15 +311,15 @@ export default function Home() {
 
             <section className="relative w-full h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden">
               <Link href="/components/nosotros" className="block w-full h-full">
-                <picture>
-                  <source media="(max-width: 699px)" srcSet="/images/_DSC7353.jpg" />
-                  <img
-                    src="/images/_DSC7353.jpg"
-                    alt="Visítanos en nuestras tiendas"
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                  />
-                </picture>
+                <Image
+                  src="/images/_DSC7353.jpg"
+                  alt="Visítanos en nuestras tiendas"
+                  fill
+                  sizes="100vw"
+                  quality={55}
+                  className="object-cover"
+                  loading="lazy"
+                />
 
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-center">
                   <h2 className="text-2xl md:text-4xl font-bold drop-shadow-lg">
