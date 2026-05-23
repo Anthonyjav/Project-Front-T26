@@ -176,7 +176,8 @@ export default function WomanContent() {
                       src={prod.imagen?.[0] || '/placeholder.jpg'}
                       alt={`Imagen principal de ${prod.nombre}`}
                       fill
-                      unoptimized
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 16vw"
+                      quality={65}
                       className={`object-cover transition-opacity duration-300 ${prod.imagen?.[1] ? 'group-hover:opacity-0' : ''}`}
                     />
                     {prod.imagen?.[1] && (
@@ -184,7 +185,9 @@ export default function WomanContent() {
                         src={prod.imagen[1]}
                         alt={`${prod.nombre} alternativa`}
                         fill
-                        unoptimized
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 16vw"
+                        quality={65}
+                        loading="lazy"
                         className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       />
                     )}

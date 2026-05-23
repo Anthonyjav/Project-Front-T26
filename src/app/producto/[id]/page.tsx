@@ -14,8 +14,7 @@ export default function ProductoDetalle() {
   const [idActual, setIdActual] = useState(initialId);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
-  const [recomendados, setRecomendados] = useState<any[]>([]);
+  const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);  const [recomendados, setRecomendados] = useState<any[]>([]);
   const [loadingRec, setLoadingRec] = useState(true);
   const cantidad = 1;
   const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
@@ -81,10 +80,15 @@ export default function ProductoDetalle() {
       }
 
       const ajustarURL = (url: string) => {
+        let fullUrl = url;
         if (!url.startsWith('http')) {
-          return `https://api.sgstudio.shop${url.startsWith('/') ? '' : '/'}${url}`;
+          fullUrl = `https://api.sgstudio.shop${url.startsWith('/') ? '' : '/'}${url}`;
         }
-        return url;
+        // Optimiza si es Cloudinary
+        if (fullUrl.includes('cloudinary.com') && !fullUrl.includes('/upload/w_')) {
+          return fullUrl.replace('/upload/', '/upload/w_800,q_auto,f_auto/');
+        }
+        return fullUrl;
       };
 
       const imagenesAjustadas = Array.isArray(data.imagen)
@@ -256,14 +260,14 @@ export default function ProductoDetalle() {
                     imagenSeleccionada === img ? 'border border-black' : 'border-none'
                   }`}
                 >
-                  <Image
-                    src={img}
-                    alt={`Vista ${index + 1}`}
-                    width={60}
-                    height={80}
-                    unoptimized
-                    className="object-cover w-full h-full"
-                  />
+                <Image
+                  src={img}
+                  alt={`Vista ${index + 1}`}
+                  width={60}
+                  height={80}
+                  quality={50}
+                  className="object-cover w-full h-full"
+                />
                 </button>
               ))}
             </div>
@@ -284,11 +288,13 @@ export default function ProductoDetalle() {
               )}
 
               {imagenSeleccionada && (
-                <Image
+              <Image
                   src={imagenSeleccionada}
                   alt="Imagen seleccionada"
                   fill
-                  unoptimized
+                  sizes="(max-width: 1024px) 100vw, 500px"
+                  quality={75}
+                  priority
                   style={{
                     objectFit: 'cover',
                     transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
@@ -615,9 +621,10 @@ export default function ProductoDetalle() {
                           src={item.imagen[0]}
                           alt={item.nombre}
                           fill
-                          unoptimized
-                          style={{ objectFit: 'cover' }}
-                          className="rounded"
+                          sizes="(max-width: 640px) 50vw, 25vw"
+                          quality={60}
+                          loading="lazy"
+                          className="object-cover rounded"
                         />
                       )}
                       {item.seleccionado && (
