@@ -174,7 +174,9 @@ export default function NewArrivalsPage() {
                       src={producto.imagen[0]}
                       alt={producto.nombre}
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 16vw"
+                      
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+
                       quality={65}
                       className={`object-cover transition-opacity duration-300 ${producto.imagen[1] ? 'group-hover:opacity-0' : ''}`}
                     />
@@ -183,7 +185,9 @@ export default function NewArrivalsPage() {
                         src={producto.imagen[1]}
                         alt={`${producto.nombre} alternativa`}
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 16vw"
+                        
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+
                         quality={65}
                         loading="lazy"
                         className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"

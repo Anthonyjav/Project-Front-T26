@@ -19,7 +19,7 @@ const useIsMobile = () => {
 
 const rawSlides = [
   'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341764/Portadaweb3_dxaxq6.png',
-  'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341965/LOGO_dsfcxz.jpg',
+  /*'https://res.cloudinary.com/dcj9cstxm/image/upload/v1777341965/LOGO_dsfcxz.jpg',*/
 ]
 
 function optimizeCloudinary(url: string, width: number) {
@@ -185,10 +185,13 @@ export default function Home() {
     }
   }, [loading, fadeSplash])
 
-  const items = productos.filter(
+  const items = productos
+  .filter(
     p => (p.activo === true || p.activo === '1' || p.activo === 1) &&
       Array.isArray(p.imagen) && p.imagen.length > 0
   )
+  .sort((a, b) => b.id - a.id)
+
   const perPage = 4
   const pageCount = Math.max(1, Math.ceil(items.length / perPage))
   const start = page * perPage
@@ -258,7 +261,7 @@ export default function Home() {
                             alt={nombre}
                             fill
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            quality={70}
+                            quality={82}
                             className={`object-cover transition-opacity duration-300 ${
                               imagen[1] ? 'group-hover:opacity-0' : ''
                             }`}
@@ -270,7 +273,7 @@ export default function Home() {
                               alt={`${nombre} alternativa`}
                               fill
                               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                              quality={70}
+                              quality={82}
                               loading="lazy"
                               className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                             />
