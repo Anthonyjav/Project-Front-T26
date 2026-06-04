@@ -4,7 +4,7 @@ import './globals.css';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { usePathname } from 'next/navigation';
-import Analytics from './components/Analytics'; 
+import Analytics from './components/Analytics';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -22,14 +22,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
 
         {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-V6GMHK8MXP"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-67QXN6RQF6"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-V6GMHK8MXP', {
+              gtag('config', 'G-67QXN6RQF6', {
                 page_path: window.location.pathname,
               });
             `,
