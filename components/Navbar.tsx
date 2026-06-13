@@ -377,7 +377,6 @@ const bgClass = scrolled || hovered || showSearch
               <FaSearch />
             </button>
             {/* Botón de carrito oculto temporalmente: quitar el `false &&` para reactivar */}
-            {false && (
               <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
                 <FaShoppingBag />
                 {carrito.length > 0 && (
@@ -386,7 +385,7 @@ const bgClass = scrolled || hovered || showSearch
                   </span>
                 )}
               </button>
-            )}
+            
           </div>
         </div>
 
@@ -599,7 +598,7 @@ const bgClass = scrolled || hovered || showSearch
               <FaSearch />
             </button>
             {/* Botón de carrito oculto temporalmente: quitar el `false &&` para reactivar */}
-            {false && (
+            
               <button onClick={() => setShowCart(true)} aria-label="Carrito" className="hover:text-gray-400 relative w-6 h-6">
                 <FaShoppingBag />
                 {Array.isArray(carrito) && carrito.length > 0 && (
@@ -608,7 +607,7 @@ const bgClass = scrolled || hovered || showSearch
                   </span>
                 )}
               </button>
-            )}
+            
           </div>
         </div>
       </nav>

@@ -386,7 +386,6 @@ export default function ProductoDetalle() {
                 <p className="text-sm text-gray-700"></p>
               )}
             </div>
-                {/* Descripción 
                 <button
                   onClick={handleAgregarAlCarrito}
                   className="btn-animated w-full rounded"
@@ -395,7 +394,7 @@ export default function ProductoDetalle() {
                   Agregar al carrito
                 </button>
            
-                {/* Descripción */}
+               
                 <div className="border-t pt-4">
                   <button
                     onClick={() => setMostrarDescripcion(!mostrarDescripcion)}

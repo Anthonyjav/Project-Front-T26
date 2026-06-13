@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FaTrash } from 'react-icons/fa';
 
 type Usuario = {
@@ -53,7 +53,9 @@ export default function PerfilUsuario() {
   const [orderDetails, setOrderDetails] = useState<any | null>(null);
   const [loadingOrderDetails, setLoadingOrderDetails] = useState(false);
   const [showRawOrder, setShowRawOrder] = useState(false);
-  const [showAlertaAsesoria, setShowAlertaAsesoria] = useState(true);
+  const searchParams = useSearchParams();
+  const [showAlertaAsesoria, setShowAlertaAsesoria] = useState(() => searchParams.get('success') === 'true');
+  const [tabActivo, setTabActivo] = useState('Mis órdenes');
 
 
   const router = useRouter();
@@ -508,161 +510,181 @@ export default function PerfilUsuario() {
           </div>
         )}
 
-        {/* <div className="space-y-4">
-          <h2 className="text-xl font-semibold uppercase">Carrito de compras</h2>
-          {loadingCarrito ? (
-            <p className="text-gray-500">Cargando productos...</p>
-          ) : carrito.length === 0 ? (
-            <>
-              <p className="text-gray-600">Tu carrito está vacío.</p>
-              <a
-                href="/"
-                className="inline-block mt-2 px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition text-sm"
-              >
-                Seguir comprando
-              </a>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid gap-6 md:grid-cols-2">
-                {carrito.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
+        {/* Tabs horizontales: Órdenes / Reclamos / Información */}
+        {(() => {
+          const tabs = ['Mis órdenes', 'Mis reclamos', 'Carrito de compras', 'Información'];
+          return (
+            <div>
+              <div className="flex border-b border-gray-300 gap-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setTabActivo(tab)}
+                    className={`px-6 py-3 text-sm font-semibold uppercase transition-colors border-b-2 ${
+                      tabActivo === tab
+                        ? 'border-black text-black'
+                        : 'border-transparent text-gray-500 hover:text-black'
+                    }`}
                   >
-                    <img
-                      src={item.producto.imagen[0]}
-                      alt={item.producto.nombre}
-                      className="w-24 h-24 object-cover rounded-md"
-                    />
-                    <div className="flex-1 space-y-1">
-                      <h3 className="text-lg font-semibold">{item.producto.nombre}</h3>
-                      <p className="text-sm text-gray-700">PEN {item.producto.precio}</p>
-                      <p className="text-sm text-gray-500">
-                        Talla: {item.talla} | Color: {item.color}
-                      </p>
-                      <p className="text-sm text-gray-500">Cantidad: {item.cantidad}</p>
-
-                      <div className="flex items-center gap-4 mt-2">
-                        <button
-                          onClick={() => handleEliminarItem(item.id)}
-                          className="text-gray-600 text-sm hover:underline"
-                        >
-                          Eliminar producto
-                        </button>
-
-                        <button
-                          onClick={() => handleEliminarItem(item.id)}
-                          className="text-red-500 hover:text-gray-700 text-lg"
-                          title="Eliminar producto"
-                        >
-                          <FaTrash className='text-black' />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    {tab}
+                  </button>
                 ))}
               </div>
 
-              <button
-                onClick={handleIrACheckout}
-                className="mt-4 px-4 py-2 rounded text-sm bg-black text-white hover:bg-gray-800 transition"
-              >
-                Ir al Checkout
-              </button>
+              <div className="pt-6">
+                {tabActivo === 'Mis órdenes' && (
+                  <div className="space-y-4">
+                    {ordenes.length === 0 ? (
+                      <p className="text-gray-600">Aún no has realizado ninguna orden.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {ordenes.map((orden, index) => (
+                          <div
+                            key={orden.id}
+                            className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition relative"
+                          >
+                            {orden.estado === 'completado' ? (
+                              <button
+                                onClick={() => {
+                                  setOrdenSeleccionada(orden);
+                                  setMostrarFormularioReclamo(true);
+                                }}
+                                className="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-sm"
+                              >
+                                Reclamos o quejas
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleEliminarOrden(orden.id)}
+                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
+                              >
+                                Eliminar
+                              </button>
+                            )}
+
+                            <div className="mt-4">
+                              <button
+                                onClick={() => openOrderDetails(orden.id)}
+                                className="inline-block px-3 py-1 text-sm border rounded hover:bg-gray-100"
+                              >
+                                Ver detalles
+                              </button>
+                            </div>
+
+                            <p className="text-sm text-gray-600">Orden {orden.orderId ? orden.orderId : `#${index + 1}`}</p>
+                            <p className="text-lg font-semibold">Total: PEN {Number(orden.total ?? 0).toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">
+                              Estado: <span className="font-medium">{orden.estado}</span>
+                            </p>
+                            <p className="text-sm text-gray-400">
+                              Fecha: {new Date(orden.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {tabActivo === 'Mis reclamos' && (
+                  <div className="space-y-4">
+                    {reclamos.length === 0 ? (
+                      <p className="text-gray-600">Aún no has registrado ningún reclamo.</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {reclamos.map((r) => (
+                          <div
+                            key={r.id}
+                            className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
+                          >
+                            <p className="text-sm text-gray-600">Reclamo #{r.id} - Orden #{r.ordenId}</p>
+                            <p className="text-sm text-gray-800 mt-2">{r.mensaje}</p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              Enviado: {new Date(r.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {tabActivo === 'Carrito de compras' && (
+                  <div className="space-y-4">
+                    {loadingCarrito ? (
+                      <p className="text-gray-500">Cargando productos...</p>
+                    ) : carrito.length === 0 ? (
+                      <>
+                        <p className="text-gray-600">Tu carrito está vacío.</p>
+                        <a
+                          href="/"
+                          className="inline-block mt-2 px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition text-sm"
+                        >
+                          Seguir comprando
+                        </a>
+                      </>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin">
+                          {carrito.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex-shrink-0 w-64 p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
+                            >
+                              <img
+                                src={item.producto.imagen[0]}
+                                alt={item.producto.nombre}
+                                className="w-full h-32 object-cover rounded-md"
+                              />
+                              <div className="mt-3 space-y-1">
+                                <h3 className="text-base font-semibold truncate">{item.producto.nombre}</h3>
+                                <p className="text-sm text-gray-700">PEN {item.producto.precio}</p>
+                                <p className="text-xs text-gray-500">
+                                  Talla: {item.talla} | Color: {item.color}
+                                </p>
+                                <p className="text-xs text-gray-500">Cantidad: {item.cantidad}</p>
+
+                                <div className="flex items-center gap-3 mt-2">
+                                  <button
+                                    onClick={() => handleEliminarItem(item.id)}
+                                    className="text-gray-600 text-xs hover:underline"
+                                  >
+                                    Eliminar
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleEliminarItem(item.id)}
+                                    className="text-red-500 hover:text-gray-700 text-sm"
+                                    title="Eliminar producto"
+                                  >
+                                    <FaTrash className='text-black' />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={handleIrACheckout}
+                          className="mt-4 px-4 py-2 rounded text-sm bg-black text-white hover:bg-gray-800 transition"
+                        >
+                          Ir al Checkout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {tabActivo === 'Información' && (
+                  <div className="space-y-2 text-sm text-gray-800">
+                    <p><strong>Nombre:</strong> {usuario.nombre}</p>
+                    <p><strong>Email:</strong> {usuario.email}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div> */}
-        {/* <div className="space-y-4">
-          <h2 className="text-xl font-semibold uppercase">Mis órdenes</h2>
-          {ordenes.length === 0 ? (
-            <p className="text-gray-600">Aún no has realizado ninguna orden.</p>
-          ) : (
-            <div className="space-y-4">
-              {ordenes.map((orden, index) => (
-           <div
-             key={orden.id}
-             className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition relative"
-           >
-             {orden.estado === 'completado' ? (
-               <button
-                 onClick={() => {
-                   setOrdenSeleccionada(orden);
-                   setMostrarFormularioReclamo(true);
-                 }}
-                 className="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-sm"
-               >
-                 Reclamos o quejas
-               </button>
-             ) : (
-               <button
-                 onClick={() => handleEliminarOrden(orden.id)}
-                 className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
-               >
-                 Eliminar
-               </button>
-             )}
-
-            <div className="mt-4">
-              <button
-                onClick={() => openOrderDetails(orden.id)}
-                className="inline-block px-3 py-1 text-sm border rounded hover:bg-gray-100"
-              >
-                Ver detalles
-              </button>
-            </div>
-
-             <p className="text-sm text-gray-600">Orden {orden.orderId ? orden.orderId : `#${index + 1}`}</p>
-             <p className="text-lg font-semibold">Total: PEN {Number(orden.total ?? 0).toFixed(2)}</p>
-             <p className="text-sm text-gray-500">
-               Estado: <span className="font-medium">{orden.estado}</span>
-             </p>
-             <p className="text-sm text-gray-400">
-               Fecha: {new Date(orden.createdAt).toLocaleString()}
-             </p>
-           </div>
-         ))}
-
-            </div>
-
-          )}
-        </div> */}
-
-        {/* <div className="border-t border-gray-300 pt-6">
-          <h2 className="text-xl font-semibold uppercase mb-4">Mis reclamos</h2>
-
-          {reclamos.length === 0 ? (
-            <p className="text-gray-600">Aún no has registrado ningún reclamo.</p>
-          ) : (
-            <div className="space-y-4">
-              {reclamos.map((r) => (
-                <div
-                  key={r.id}
-                  className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition"
-                >
-                  <p className="text-sm text-gray-600">Reclamo #{r.id} - Orden #{r.ordenId}</p>
-                  <p className="text-sm text-gray-800 mt-2">{r.mensaje}</p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Enviado: {new Date(r.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div> */}
-
-
-        <div className="border-t border-gray-300 pt-6 pb-15">
-          <h2 className="text-xl font-semibold uppercase mb-4">Información de la cuenta</h2>
-          <div className="space-y-2 text-sm text-gray-800">
-            <p>
-              <strong>Nombre:</strong> {usuario.nombre}
-            </p>
-            <p>
-              <strong>Email:</strong> {usuario.email}
-            </p>
-          </div>
-        </div>
+          );
+        })()}
       </div>
       
       {showToast && (

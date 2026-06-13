@@ -215,7 +215,7 @@ body {
   background-position: center;
   display: block !important;
   pointer-events: none;
-  z-index: 10000;
+  z-index: 1;
 }
 
 /* Asegurarnos de mostrar el header/logo que provee IziPay */
@@ -292,4 +292,20 @@ body {
   margin: 0 auto 12px !important;
   visibility: visible !important;
   opacity: 1 !important;
+}
+
+/* Scrollbar delgada para carrusel del carrito */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }

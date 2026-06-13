@@ -34,6 +34,7 @@ export default function CheckoutPage() {
 
   const [formToken, setFormToken] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // =====================================
   // CARRITO
@@ -129,6 +130,7 @@ export default function CheckoutPage() {
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
 
     if (name === 'department') {
       const provs = ubigeos
@@ -137,6 +139,8 @@ export default function CheckoutPage() {
       setProvincias(Array.from(new Set(provs)));
       setDistritos([]);
       setForm(prev => ({ ...prev, state: '', city: '', department: value }));
+      if (errors.state) setErrors(prev => ({ ...prev, state: '' }));
+      if (errors.city) setErrors(prev => ({ ...prev, city: '' }));
     }
 
     if (name === 'state') {
@@ -145,13 +149,47 @@ export default function CheckoutPage() {
         .map(u => u.distrito);
       setDistritos(Array.from(new Set(dists)));
       setForm(prev => ({ ...prev, city: '', state: value }));
+      if (errors.city) setErrors(prev => ({ ...prev, city: '' }));
     }
 
     if (name === 'city') {
       setForm(prev => ({ ...prev, city: value }));
     }
   }
-  
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.firstName.trim()) newErrors.firstName = 'Campo requerido';
+    if (!form.lastName.trim()) newErrors.lastName = 'Campo requerido';
+    if (!form.email.trim()) newErrors.email = 'Campo requerido';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'Email inválido';
+    if (!form.phoneNumber.trim()) newErrors.phoneNumber = 'Campo requerido';
+    else if (!/^\d{9}$/.test(form.phoneNumber)) newErrors.phoneNumber = 'Debe tener 9 dígitos';
+    if (!form.identityCode.trim()) newErrors.identityCode = 'Campo requerido';
+    else {
+      if (form.identityType === 'DNI' && !/^\d{8}$/.test(form.identityCode))
+        newErrors.identityCode = 'Debe tener 8 dígitos';
+      else if (form.identityType === 'CE' && !/^\d{9}$/.test(form.identityCode))
+        newErrors.identityCode = 'Debe tener 9 dígitos';
+      else if (form.identityType === 'RUC' && !/^\d{11}$/.test(form.identityCode))
+        newErrors.identityCode = 'Debe tener 11 dígitos';
+      else if (form.identityType === 'Pasaporte' && form.identityCode.trim().length < 4)
+        newErrors.identityCode = 'Mínimo 4 caracteres';
+    }
+    if (!form.address.trim()) newErrors.address = 'Campo requerido';
+    if (!form.department) newErrors.department = 'Selecciona departamento';
+    if (!form.state) newErrors.state = 'Selecciona provincia';
+    if (!form.city) newErrors.city = 'Selecciona distrito';
+    if (!form.shippingMethod) newErrors.shippingMethod = 'Selecciona método';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const inputClass = (field: string, extra = '') =>
+    `w-full px-3 py-2 border rounded text-sm text-black bg-white focus:outline-none transition-colors duration-300 ease-in-out ${errors[field] ? 'border-red-500' : 'border-gray-200'} ${extra}`;
+
+  const selectClass = (field: string, extra = '') =>
+    `w-full px-3 py-2 border rounded text-sm text-black bg-white appearance-none pr-10 focus:outline-none transition-colors duration-200 ease-in-out ${errors[field] ? 'border-red-500' : 'border-gray-200'} ${extra}`;
 
   // =====================================
   // GENERAR FORM TOKEN PARA IZIPAY
@@ -189,6 +227,8 @@ export default function CheckoutPage() {
         alert('Selecciona un método de envío.');
         return;
       }
+
+      if (!validateForm()) return;
 
       // Asegurar orderId antes de armar el payload
       const orderIdToUse = form.orderId || generateOrderId();
@@ -422,7 +462,7 @@ useEffect(() => {
   if (loading) return <p>Cargando...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-40">
+    <div className="min-h-screen bg-gray-50 px-6 pt-24 pb-16">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
 
         {/* IZQUIERDA */}
@@ -434,94 +474,147 @@ useEffect(() => {
             <>
               {/* Nombre y Apellido */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none focus:border-black transition-colors duration-300 ease-in-out" placeholder="Nombre"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
-
-                <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out" placeholder="Apellido"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+                <div>
+                  <input className={inputClass('firstName')} placeholder="Nombre"
+                    value={form.firstName}
+                    onChange={(e) => { setForm({ ...form, firstName: e.target.value }); if (errors.firstName) setErrors(p => ({ ...p, firstName: '' })); }} />
+                  {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
+                </div>
+                <div>
+                  <input className={inputClass('lastName')} placeholder="Apellido"
+                    value={form.lastName}
+                    onChange={(e) => { setForm({ ...form, lastName: e.target.value }); if (errors.lastName) setErrors(p => ({ ...p, lastName: '' })); }} />
+                  {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+                </div>
               </div>
 
-              <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out" placeholder="Email (obligatorio)"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <div>
+                <input className={inputClass('email')} placeholder="Email (obligatorio)"
+                  value={form.email}
+                  onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errors.email) setErrors(p => ({ ...p, email: '' })); }} />
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              </div>
 
-              <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out" placeholder="DNI (obligatorio)"
-                value={form.identityCode}
-                onChange={(e) => setForm({ ...form, identityCode: e.target.value })} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <select className={selectClass('identityType')}
+                    value={form.identityType}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      let newCode = form.identityCode.replace(/\D/g, '');
+                      if (newType === 'DNI') newCode = newCode.slice(0, 8);
+                  
+                      setForm({ ...form, identityType: newType, identityCode: newCode });
+                      if (errors.identityCode) setErrors(p => ({ ...p, identityCode: '' }));
+                    }}>
+                    <option value="DNI">DNI</option>
+                    <option value="CE">Carné de Extranjería</option>
+                  
+                  </select>
+                </div>
+                <div>
+                  <input className={inputClass('identityCode')} placeholder="N° de Documento (obligatorio)"
+                    value={form.identityCode}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (form.identityType === 'DNI') val = val.replace(/\D/g, '').slice(0, 8);
+                      else if (form.identityType === 'CE') val = val.replace(/\D/g, '').slice(0, 9);
+                    
+                      else val = val.slice(0, 15);
+                      setForm({ ...form, identityCode: val });
+                      if (errors.identityCode) setErrors(p => ({ ...p, identityCode: '' }));
+                    }} />
+                  {errors.identityCode && <p className="text-red-500 text-xs mt-1">{errors.identityCode}</p>}
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input className="sm:col-span-2 w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out" placeholder="Dirección"
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })} />
-
+                <div className="sm:col-span-2">
+                  <input className={inputClass('address')} placeholder="Dirección"
+                    value={form.address}
+                    onChange={(e) => { setForm({ ...form, address: e.target.value }); if (errors.address) setErrors(p => ({ ...p, address: '' })); }} />
+                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                </div>
                 <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white bg-gray-100 cursor-not-allowed" placeholder="País"
                   value={form.country}
                   onChange={(e) => setForm({ ...form, country: e.target.value })} 
                   disabled/>
               </div>
 
-              <div className='relative'>
-              <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out pr-10" placeholder="Teléfono"
-                value={form.phoneNumber}
-                onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
+              <div>
+                <div className='relative'>
+                  <input className={`${inputClass('phoneNumber')} pr-10`} placeholder="Teléfono"
+                    value={form.phoneNumber}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 9);
+                      setForm({ ...form, phoneNumber: val });
+                      if (errors.phoneNumber) setErrors(p => ({ ...p, phoneNumber: '' }));
+                    }} />
 
-                <div className="absolute inset-y-0 right-3 flex items-center group">
-                  <span className="w-4 h-4 flex items-center justify-center rounded-full
-                                  border-2 border-gray-600 text-xs text-gray-600
-                                  cursor-pointer select-none">
-                    ?
-                  </span>
+                  <div className="absolute inset-y-0 right-3 flex items-center group">
+                    <span className="w-4 h-4 flex items-center justify-center rounded-full
+                                    border-2 border-gray-600 text-xs text-gray-600
+                                    cursor-pointer select-none">
+                      ?
+                    </span>
 
-                  <div
-                    className="
-                      absolute right-0 top-full mt-2 w-48
-                      bg-black text-white text-xs rounded-md px-3 py-2
-                      opacity-0 scale-95 pointer-events-none
-                      group-hover:opacity-100 group-hover:scale-100
-                      transition
-                    "
-                  >
-                    En caso de que tengamos que contactarte sobre tu pedido.
+                    <div
+                      className="
+                        absolute right-0 top-full mt-2 w-48
+                        bg-black text-white text-xs rounded-md px-3 py-2
+                        opacity-0 scale-95 pointer-events-none
+                        group-hover:opacity-100 group-hover:scale-100
+                        transition
+                      "
+                    >
+                      En caso de que tengamos que contactarte sobre tu pedido.
+                    </div>
                   </div>
-                </div>
 
+                </div>
+                {errors.phoneNumber && <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>}
               </div>
 
               <div className="space-y-2">
                 <label className="text-base font-semibold text-gray-800">Ubicación</label>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out" 
-                    name="department"
-                    value={form.department}
-                    onChange={handleChange}>
-                    <option value="">Departamento</option>
-                    {departamentos.map((d: any) => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-
-                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
-                    name="state"
-                    value={form.state}
-                    onChange={handleChange}>
-                    <option value="">Provincia</option>
-                    {provincias.map((p: any) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-
-                  <select className="w-full px-3 py-2 border border-gray-200 text-black rounded text-sm bg-white  appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
-                    name="city"
-                    value={form.city}
-                    onChange={handleChange}>
-                    <option value="">Distrito</option>
-                    {distritos.map((dd: any) => (
-                      <option key={dd} value={dd}>{dd}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <select className={selectClass('department')}
+                      name="department"
+                      value={form.department}
+                      onChange={handleChange}>
+                      <option value="">Departamento</option>
+                      {departamentos.map((d: any) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    {errors.department && <p className="text-red-500 text-xs mt-1">{errors.department}</p>}
+                  </div>
+                  <div>
+                    <select className={selectClass('state')}
+                      name="state"
+                      value={form.state}
+                      onChange={handleChange}>
+                      <option value="">Provincia</option>
+                      {provincias.map((p: any) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                    {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+                  </div>
+                  <div>
+                    <select className={selectClass('city')}
+                      name="city"
+                      value={form.city}
+                      onChange={handleChange}>
+                      <option value="">Distrito</option>
+                      {distritos.map((dd: any) => (
+                        <option key={dd} value={dd}>{dd}</option>
+                      ))}
+                    </select>
+                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -529,15 +622,17 @@ useEffect(() => {
                   value={form.reference}
                   onChange={(e) => setForm({ ...form, reference: e.target.value })} />
 
-                <select
-                  className="w-full px-3 py-2 border text-black border-gray-200 rounded text-sm bg-white appearance-none pr-10 focus:outline-none focus:border-black transition-colors duration-200 ease-in-out"
-                  value={form.shippingMethod}
-                  onChange={(e) => setForm({ ...form, shippingMethod: e.target.value })}
-                >
-                  <option value="">Seleccione método de envío</option>
-                  <option value="recojo">Recojo en tienda</option>
-                  <option value="olva">OLVA COURIER</option>
-                </select>
+                <div>
+                  <select className={selectClass('shippingMethod')}
+                    value={form.shippingMethod}
+                    onChange={(e) => { setForm({ ...form, shippingMethod: e.target.value }); if (errors.shippingMethod) setErrors(p => ({ ...p, shippingMethod: '' })); }}
+                  >
+                    <option value="">Seleccione método de envío</option>
+                    <option value="recojo">Recojo en tienda</option>
+                    <option value="olva">OLVA COURIER</option>
+                  </select>
+                  {errors.shippingMethod && <p className="text-red-500 text-xs mt-1">{errors.shippingMethod}</p>}
+                </div>
               </div>
               <button
                 onClick={generarPago}

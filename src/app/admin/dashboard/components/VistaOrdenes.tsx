@@ -15,6 +15,8 @@ type Orden = {
   distrito?: string;
   direccion?: string;
   referencia?: string;
+  identityType?: string;
+  identityCode?: string;
   metodoEnvio?: string;
   estado: string;
   total: number;
@@ -120,6 +122,22 @@ export default function VistaOrdenes() {
         if (metadata.referencia) ordenCompleta.referencia = metadata.referencia;
         if (metadata.orderId) ordenCompleta.orderIdIzipay = metadata.orderId;
         if (typeof metadata.shippingCost !== 'undefined') ordenCompleta.envio = Number(metadata.shippingCost);
+        if (metadata.identityType) ordenCompleta.identityType = metadata.identityType;
+        if (metadata.identityCode) ordenCompleta.identityCode = metadata.identityCode;
+      }
+
+      // Si no vino en metadata, buscar directamente en paymentResponse
+      if (!ordenCompleta.identityType || !ordenCompleta.identityCode) {
+        try {
+          const resp = typeof orden.paymentResponse === 'string'
+            ? JSON.parse(orden.paymentResponse)
+            : orden.paymentResponse;
+          if (resp?.identityType) ordenCompleta.identityType = resp.identityType;
+          if (resp?.identityCode) ordenCompleta.identityCode = resp.identityCode;
+          // También buscar en customer.billingDetails
+          if (resp?.customer?.billingDetails?.identityType) ordenCompleta.identityType = resp.customer.billingDetails.identityType;
+          if (resp?.customer?.billingDetails?.identityCode) ordenCompleta.identityCode = resp.customer.billingDetails.identityCode;
+        } catch (e) {}
       }
       
       // Obtener items y calcular subtotal
@@ -668,6 +686,12 @@ export default function VistaOrdenes() {
                 <div>
                   <p className="text-gray-600 text-sm font-semibold">Teléfono</p>
                   <p className="text-black text-lg">{modalDetalle.telefono}</p>
+                </div>
+              )}
+              {(hasValue(modalDetalle.identityType) && hasValue(modalDetalle.identityCode)) && (
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold">{modalDetalle.identityType}</p>
+                  <p className="text-black text-lg">{modalDetalle.identityCode}</p>
                 </div>
               )}
               {hasValue(modalDetalle.usuarioId) && (
