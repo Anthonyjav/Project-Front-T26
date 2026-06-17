@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { FaEye, FaEyeSlash, FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function RegistroPage() {
   const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -43,13 +45,11 @@ export default function RegistroPage() {
       } else {
         setMensaje('Registro exitoso ✅');
 
-        // Limpia los campos
         setNombre('');
         setApellido('');
         setEmail('');
         setPassword('');
 
-        // Redirige al login
         setTimeout(() => {
           router.push('/login');
         }, 500);
@@ -64,62 +64,96 @@ export default function RegistroPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-white pt-24">
-      <div className="w-full max-w-md bg-white shadow-lg p-8 rounded-lg border">
-        <h2 className="font-[Beige] text-2xl text-center text-black mb-6">
-          Crear cuenta
-        </h2>
+      <div className="w-full max-w-md bg-white shadow-xl p-8 rounded-lg border border-gray-100">
+        <div className="text-center mb-8">
+          <h2 className="font-[Beige] text-3xl text-black mb-2 tracking-wide">
+            Crear cuenta
+          </h2>
+          <p className="text-gray-500 text-sm">
+            Únete a SG Studio y descubre nuestra colección
+          </p>
+        </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="name" className="block text-sm text-gray-700 mb-1">Nombre</label>
-            <input
-              type="text"
-              id="name"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black text-black"
-              placeholder="Tu nombre"
-            />
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="name" className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">
+                Nombre
+              </label>
+              <div className="relative">
+                <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  id="name"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-black transition-all placeholder:text-gray-400"
+                  placeholder="Tu nombre"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="apellido" className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">
+                Apellido
+              </label>
+              <div className="relative">
+                <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  id="apellido"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-black transition-all placeholder:text-gray-400"
+                  placeholder="Apellido"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
-            <label htmlFor="apellido" className="block text-sm text-gray-700 mb-1">Apellido</label>
-            <input
-              type="text"
-              id="apellido"
-              value={apellido}
-              onChange={(e) => setApellido(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black text-black"
-              placeholder="Tu apellido"
-            />
+            <label htmlFor="email" className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">
+              Correo electrónico
+            </label>
+            <div className="relative">
+              <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full border border-gray-300 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-black transition-all placeholder:text-gray-400"
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Correo electrónico</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black text-black"
-              placeholder="correo@ejemplo.com"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black text-black"
-              placeholder="********"
-            />
+            <label htmlFor="password" className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">
+              Contraseña
+            </label>
+            <div className="relative">
+              <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full border border-gray-300 rounded-lg pl-9 pr-10 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-black transition-all placeholder:text-gray-400"
+                placeholder="********"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-colors cursor-pointer"
+                tabIndex={-1}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
 
           <button
@@ -127,19 +161,23 @@ export default function RegistroPage() {
             disabled={loading}
             className="w-full btn-animated"
           >
-            {loading ? 'Registrando...' : 'Registrarse'}
+            {loading ? 'Registrando...' : 'Crear cuenta'}
           </button>
         </form>
 
         {mensaje && (
-          <p className={`mt-4 text-center text-sm ${mensaje.includes('exitoso') ? 'text-green-600' : 'text-red-500'}`}>
+          <div className={`mt-5 p-3 rounded-lg text-center text-sm font-medium animate-fade-in-left ${
+            mensaje.includes('exitoso')
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-600 border border-red-200'
+          }`}>
             {mensaje}
-          </p>
+          </div>
         )}
 
-        <div className="mt-4 text-center text-sm text-gray-600">
+        <div className="mt-6 pt-5 border-t border-gray-100 text-center text-sm text-gray-500">
           ¿Ya tienes una cuenta?{' '}
-          <Link href="/login" className="text-black hover:underline">
+          <Link href="/login" className="text-black font-medium hover:underline">
             Inicia sesión
           </Link>
         </div>

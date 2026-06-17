@@ -656,7 +656,7 @@ useEffect(() => {
           {!carrito?.items?.length ? (
             <p className="text-sm text-gray-500">Tu carrito está vacío.</p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-72 overflow-y-auto pr-1 scrollbar-thin">
               {carrito.items.map((item: any, index: number) => (
                 <div 
                   key={index} 
@@ -711,7 +711,7 @@ useEffect(() => {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-700">
               <span>Subtotal</span>
-              <span>S/ {subtotalCalc}</span>
+              <span>S/ {subtotalCalc.toFixed(2)}</span>
             </div>
 
             <div className="flex justify-between text-gray-500">
@@ -723,13 +723,13 @@ useEffect(() => {
           </div>
 
           {carrito?.items?.length > 0 && (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center border-t border-gray-200 pt-4">
               <span className="text-base font-semibold text-gray-900">
                 Total
               </span>
 
               <span className="text-xl font-semibold text-gray-900">
-                S/ {totalCalc}
+                S/ {totalCalc.toFixed(2)}
               </span>
             </div>
           )}

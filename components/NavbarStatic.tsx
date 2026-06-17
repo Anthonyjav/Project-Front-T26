@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   FaUser, FaSearch, FaShoppingBag, FaTimes,
   FaTrash, FaBars, FaChevronRight, FaChevronLeft
@@ -66,6 +66,8 @@ export default function Navbar() {
   
 
   const router = useRouter();
+  const pathname = usePathname();
+  const isWhiteBg = pathname === '/login'  ||  pathname === '/components/nosotros'  ||  pathname === '/components/nosotros' || pathname === '/registro' || pathname === '/olvide-mi-contrasena' || pathname === '/resetear-contrasena' || pathname === '/usuario/perfil' || pathname === '/buscar' || pathname === '/terminos' || pathname === '/preguntas' || pathname === '/checkout' || pathname === '/pago-exitoso' || pathname === '/pago-fallido' || pathname === '/woman' || pathname.startsWith('/woman?') || pathname === '/newarrivals' || pathname.startsWith('/producto/');
 
   const ajustarURL = (url?: string) => {
     if (!url) return '';
@@ -85,6 +87,14 @@ export default function Navbar() {
   };
 
   const clearSearch = () => setSearchTerm('');
+  // SCROLL
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // EFECTOS
   useEffect(() => {
     const fetchCategorias = async () => {
@@ -217,6 +227,30 @@ export default function Navbar() {
   }, [showSearch]);
 
   useEffect(() => {
+    if (!showCart) return;
+    const fetchCarrito = async () => {
+      const storedUser = localStorage.getItem('usuario');
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+      if (isLoggedIn && storedUser) {
+        const user = JSON.parse(storedUser);
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/carrito/${user.id}`);
+          if (!response.ok) throw new Error('No se pudo obtener el carrito');
+          const data = await response.json();
+          setCarrito(Array.isArray(data.items) ? data.items : []);
+        } catch (error) {
+          console.error('Error al obtener carrito del backend:', error);
+        }
+      } else {
+        const savedCart = localStorage.getItem('carrito');
+        if (savedCart) setCarrito(JSON.parse(savedCart));
+      }
+    };
+    fetchCarrito();
+  }, [showCart]);
+
+  useEffect(() => {
     const handleClickOutsideCart = (event: MouseEvent) => {
       if (cartRef.current && !cartRef.current.contains(event.target as Node)) {
         setShowCart(false);
@@ -253,9 +287,18 @@ export default function Navbar() {
     }
   };
 
+  const sincronizarCarrito = (carritoActualizado: ProductoCarrito[]) => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      localStorage.setItem('carrito', JSON.stringify(carritoActualizado));
+    }
+  };
+
   const persistirCantidad = async (carritoActualizado: ProductoCarrito[], itemId: number) => {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const storedUser = localStorage.getItem('usuario');
+
+    sincronizarCarrito(carritoActualizado);
 
     if (isLoggedIn && storedUser) {
       try {
@@ -268,16 +311,16 @@ export default function Navbar() {
       } catch (err) {
         console.error('Error al actualizar cantidad en backend:', err);
       }
-    } else {
-      localStorage.setItem('carrito', JSON.stringify(carritoActualizado));
     }
   };
+
+  const MAX_CANTIDAD = 3;
 
   const actualizarCantidad = (id: number, delta: number) => {
     setCarrito((prev) => {
       const actualizado = prev.map((item) =>
         item.id === id
-          ? { ...item, cantidad: Math.max(1, item.cantidad + delta) }
+          ? { ...item, cantidad: Math.min(MAX_CANTIDAD, Math.max(1, item.cantidad + delta)) }
           : item
       );
 
@@ -295,15 +338,14 @@ export default function Navbar() {
     const storedUser = localStorage.getItem('usuario');
 
     const nuevoCarrito = carrito.filter((item) => item.id !== itemId);
+    setCarrito(nuevoCarrito);
+    sincronizarCarrito(nuevoCarrito);
 
     if (isLoggedIn && storedUser) {
       try {
-        const user = JSON.parse(storedUser);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/carritoItem/${itemId}`,
-          {
-            method: 'DELETE',
-          }
+          { method: 'DELETE' }
         );
 
         if (!response.ok) {
@@ -314,13 +356,8 @@ export default function Navbar() {
       }
     }
 
-    localStorage.setItem('carrito', JSON.stringify(nuevoCarrito));
-    setCarrito(nuevoCarrito);
-
-    if (window.location.pathname === '/checkout') {
-      window.location.href = '/';
-    } else {
-      window.location.reload();
+    if (window.location.pathname === '/checkout' && nuevoCarrito.length === 0) {
+      router.push('/');
     }
   };
 
@@ -349,13 +386,13 @@ let hoverTimeout: NodeJS.Timeout;
 
 const bgClassnot = 'bg-white text-black shadow-md border-b border-gray-300';
 
-const bgClass = scrolled || hovered || showSearch
+const bgClass = scrolled || showSearch || isWhiteBg
     ? 'bg-white text-black shadow-md border-b border-gray-300'
-    : 'bg-transparent text- border-b border-transparent';
+    : 'bg-transparent text-white border-b border-transparent';
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 w-full z-50 px-8 py-4 transition-all duration-300 ${bgClassnot}`}
+      <nav className={`fixed top-0 left-0 w-full z-50 px-8 py-4 transition-all duration-300 ${bgClass}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -503,11 +540,11 @@ const bgClass = scrolled || hovered || showSearch
                 onMouseEnter={handleHoverEnter}
                 onMouseLeave={handleHoverLeave}
               >
-                <Link href="/woman" className={`underline-hover transition ${
-                  hovered || scrolled 
+                <Link href="/woman" className={`transition ${
+                  scrolled || isWhiteBg 
                   ? 'text-black hover:text-gray-600' 
-                  : 'text-black hover:text-gray-300'
-                }`}>
+                  : 'text-white hover:text-gray-300 font-bold'
+                } hover:underline underline-offset-4`}>
                   WOMAN
                 </Link>
 
@@ -548,11 +585,11 @@ const bgClass = scrolled || hovered || showSearch
                 onMouseEnter={handleHoverEnterNewArrivals}
                 onMouseLeave={handleHoverLeaveNewArrivals}
               >
-                <Link href="/newarrivals" className={`underline-hover transition ${
-                  hovered || scrolled
+                <Link href="/newarrivals" className={`transition ${
+                  scrolled || isWhiteBg
                     ? 'text-black hover:text-gray-600'
-                    : 'text-black hover:text-gray-300'
-                }`}>
+                    : 'text-white hover:text-gray-300 font-bold'
+                } hover:underline underline-offset-4`}>
                   NEW ARRIVALS
                 </Link>
 
@@ -695,7 +732,8 @@ const bgClass = scrolled || hovered || showSearch
             <span className="mx-3 text-sm text-black">{item.cantidad}</span>
             <button
               onClick={() => aumentarCantidad(item.id)}
-              className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+              disabled={item.cantidad >= MAX_CANTIDAD}
+              className="p-1 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-40"
             >
               <svg fill="none" width="14" height="14" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="1.5" className='text-black'>
                 <path d="M6 0v12M0 6h12" />

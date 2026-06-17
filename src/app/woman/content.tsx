@@ -84,7 +84,7 @@ export default function WomanContent() {
   return (
     <main className="bg-white min-h-screen p-4 pt-24 flex flex-col lg:flex-row">
       {/*  Sidebar  */}
-      <aside className="w-full lg:w-64 lg:pr-6 border-b lg:border-b-0 lg:border-r border-gray-300 mb-4 lg:mb-0">
+      <aside className="w-full lg:w-64 lg:pr-6 border-b lg:border-b-0 lg:border-r border-gray-300 mb-4 lg:mb-0 sticky top-24 self-start">
         <h2 className="font-[Montserrat] text-xl lg:text-2xl font-bold mb-4 text-gray-800">Categorías</h2>
 
         <div

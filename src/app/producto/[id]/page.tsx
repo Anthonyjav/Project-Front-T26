@@ -332,7 +332,7 @@ export default function ProductoDetalle() {
                               }
                             }}
                             title={c}
-                            className={`w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer border border-black bg-white shadow-[0_1px_3px_rgba(0,0,0,0.40)] ${isSelected ? 'shadow-[0_4px_8px_rgba(0,0,0,0.50)]' : ''} transition-all duration-200`}
+                            className={`w-8 h-8 rounded-sm flex items-center justify-center cursor-pointer border border-black bg-white shadow-[0_1px_3px_rgba(0,0,0,0.40)] ${valid && ['white', '#fff', '#ffffff', 'ivory', 'cream', 'beige', 'snow', 'linen', 'ghostwhite', 'whitesmoke', 'aliceblue', 'lavender', 'honeydew', 'mintcream', 'azure'].includes(c.toLowerCase().replace(/\s/g, '')) ? 'ring-1 ring-inset ring-gray-300' : ''} ${isSelected ? 'shadow-[0_4px_8px_rgba(0,0,0,0.50)]' : ''} transition-all duration-200`}
                             style={{ backgroundColor: valid ? c : 'transparent' }}
                           >
                             {!valid && <span className="text-xs text-gray-700">{c}</span>}
@@ -344,7 +344,7 @@ export default function ProductoDetalle() {
                 </div>
 
                 <div className='mb-5'>
-                  <p className="text-sm font-medium mb-6">Talla:</p>
+                  <p className="text-sm font-medium mb-6 text-black">Talla:</p>
                   <div className="flex items-center gap-3">
                     {(() => {
                       const sizes = Array.from(
@@ -369,7 +369,7 @@ export default function ProductoDetalle() {
                               setSelectedVariantId(candidate.id);
                             }
                           }}
-                          className={`w-12 px-0 py-3 border rounded-none text-sm cursor-pointer transition-all duration-200 ${selectedSize === s ? 'bg-black text-white' : 'bg-white text-gray-700 hover:bg-black hover:text-white'}`}
+                          className={`px-4 py-3 min-w-[3.5rem] border border-gray-700 rounded-none text-sm cursor-pointer transition-all duration-200 whitespace-nowrap ${selectedSize === s ? 'bg-black text-white border-black' : 'bg-white text-gray-700 hover:bg-black hover:text-white'}`}
                         >
                           {s}
                         </button>

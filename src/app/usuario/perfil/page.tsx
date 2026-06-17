@@ -7,6 +7,7 @@ import { FaTrash } from 'react-icons/fa';
 type Usuario = {
   id: number;
   nombre: string;
+  apellido: string;
   email: string;
   rol: string;
 };
@@ -56,6 +57,12 @@ export default function PerfilUsuario() {
   const searchParams = useSearchParams();
   const [showAlertaAsesoria, setShowAlertaAsesoria] = useState(() => searchParams.get('success') === 'true');
   const [tabActivo, setTabActivo] = useState('Mis órdenes');
+  const [editando, setEditando] = useState(false);
+  const [editNombre, setEditNombre] = useState('');
+  const [editApellido, setEditApellido] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [guardando, setGuardando] = useState(false);
 
 
   const router = useRouter();
@@ -444,6 +451,72 @@ export default function PerfilUsuario() {
   };
 
 
+  const iniciarEdicion = () => {
+    setEditNombre(usuario.nombre);
+    setEditApellido(usuario.apellido || '');
+    setEditEmail(usuario.email);
+    setEditPassword('');
+    setEditando(true);
+  };
+
+  const cancelarEdicion = () => {
+    setEditando(false);
+    setEditPassword('');
+  };
+
+  const guardarCambios = async () => {
+    if (!editNombre.trim() || !editApellido.trim() || !editEmail.trim()) {
+      mostrarToast('Nombre, apellido y email son obligatorios');
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      const token = localStorage.getItem('token');
+      const body: any = {
+        nombre: editNombre.trim(),
+        apellido: editApellido.trim(),
+        email: editEmail.trim(),
+      };
+      if (editPassword) {
+        if (editPassword.length < 6) {
+          mostrarToast('La contraseña debe tener al menos 6 caracteres');
+          setGuardando(false);
+          return;
+        }
+        body.password = editPassword;
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/${usuario.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Error al actualizar');
+      }
+
+      const data = await res.json();
+
+      const updatedUser = { ...usuario, ...data.usuario };
+      localStorage.setItem('usuario', JSON.stringify(updatedUser));
+      setUsuario(updatedUser);
+
+      setEditando(false);
+      setEditPassword('');
+      mostrarToast('Datos actualizados correctamente');
+    } catch (err: any) {
+      mostrarToast(err.message || 'Error al guardar los cambios');
+    } finally {
+      setGuardando(false);
+    }
+  };
+
   const handleIrACheckout = () => {
   if (carrito.length === 0) {
     mostrarToast('Tu carrito está vacío.');
@@ -676,9 +749,85 @@ export default function PerfilUsuario() {
                   </div>
                 )}
                 {tabActivo === 'Información' && (
-                  <div className="space-y-2 text-sm text-gray-800">
-                    <p><strong>Nombre:</strong> {usuario.nombre}</p>
-                    <p><strong>Email:</strong> {usuario.email}</p>
+                  <div className="max-w-md space-y-4">
+                    {editando ? (
+                      <>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">Nombre</label>
+                          <input
+                            type="text"
+                            value={editNombre}
+                            onChange={(e) => setEditNombre(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black text-black"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">Apellido</label>
+                          <input
+                            type="text"
+                            value={editApellido}
+                            onChange={(e) => setEditApellido(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black text-black"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">Correo electrónico</label>
+                          <input
+                            type="email"
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black text-black"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1 uppercase tracking-wide font-medium">
+                            Nueva contraseña <span className="text-gray-400 font-normal normal-case">(opcional)</span>
+                          </label>
+                          <input
+                            type="password"
+                            value={editPassword}
+                            onChange={(e) => setEditPassword(e.target.value)}
+                            placeholder="Dejar en blanco para no cambiar"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black text-black placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            onClick={guardarCambios}
+                            disabled={guardando}
+                            className="px-5 py-2.5 bg-black text-white rounded-lg text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                          >
+                            {guardando ? 'Guardando...' : 'Guardar cambios'}
+                          </button>
+                          <button
+                            onClick={cancelarEdicion}
+                            className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-600 hover:text-black hover:border-gray-500 transition-all"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="space-y-3 text-sm">
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Nombre completo</p>
+                            <p className="text-gray-800 font-medium mt-1">{usuario.nombre} {usuario.apellido}</p>
+                          </div>
+                          <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Correo electrónico</p>
+                            <p className="text-gray-800 font-medium mt-1">{usuario.email}</p>
+                          </div>
+                   
+                        </div>
+                        <button
+                          onClick={iniciarEdicion}
+                          className="px-5 py-2.5 bg-black text-white rounded-lg text-sm hover:opacity-90 transition-opacity inline-flex items-center gap-2"
+                        >
+                          Editar datos
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

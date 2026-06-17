@@ -108,13 +108,7 @@ body {
 }
 @font-face {
   font-family: 'Beige';
-  src: url('/public/fonts/Beige_Culture_Regular.otf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Montserrat';
-  src: url('/public/fonts/Montserrat-Regular.ttf') format('truetype');
+  src: url('/fonts/Beige Culture Italic.otf') format('opentype');
   font-weight: normal;
   font-style: normal;
 }

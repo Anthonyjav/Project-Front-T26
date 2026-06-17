@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import TextWithIcons from './components/TextWithIcons'
+
 import WhatsappBubble from '../../components/WhatsappBubble'
 import SplashScreen from '../../components/SplashScreen'
 
@@ -75,10 +76,19 @@ function Slideshow({ interval = 5000 }: { interval?: number }) {
         ))}
 
         {/* Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20">
-          <h5 className="text-white text-4xl font-bold drop-shadow-lg">
-            {/* Aquí puedes poner texto */}
-          </h5>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 z-20 gap-6 px-4">
+          <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold drop-shadow-lg text-center leading-tight">
+            Tu estilo comienza aquí
+          </h1>
+          <p className="text-white/80 text-base md:text-lg drop-shadow text-center max-w-xl">
+            Descubre las últimas tendencias en moda urbana
+          </p>
+          <Link
+            href="/woman"
+            className="inline-block px-8 py-3 bg-white text-black font-semibold text-sm uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300 mt-2"
+          >
+            Ver Colección
+          </Link>
         </div>
       </section>
 

@@ -93,9 +93,15 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <button type="submit" className="w-full btn-animated">
+            <button type="submit" className="w-full btn-animated">
             Iniciar sesión
           </button>
+
+          <div className="text-center">
+            <Link href="/olvide-mi-contrasena" className="text-xs text-gray-500 hover:text-black transition-colors">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
         </form>
 
         {mensaje && (
