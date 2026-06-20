@@ -77,11 +77,9 @@ function Slideshow({ interval = 5000 }: { interval?: number }) {
 
         {/* Overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 z-20 gap-6 px-4">
-          <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold drop-shadow-lg text-center leading-tight">
-            Tu estilo comienza aquí
-          </h1>
+          
           <p className="text-white/80 text-base md:text-lg drop-shadow text-center max-w-xl">
-            Descubre las últimas tendencias en moda urbana
+            Descubre las últimas tendencias en moda
           </p>
           <Link
             href="/woman"

@@ -173,6 +173,10 @@ export default function Navbar() {
     };
 
     fetchCarrito();
+
+    const handleCarritoActualizado = () => fetchCarrito();
+    window.addEventListener('carrito-actualizado', handleCarritoActualizado);
+    return () => window.removeEventListener('carrito-actualizado', handleCarritoActualizado);
   }, []);
 
 

@@ -138,7 +138,6 @@ export default function ProductoDetalle() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`);
         if (!res.ok) throw new Error('Error al obtener recomendados');
         const datos = await res.json();
-        // Usar sólo productos activos como recomendados
         const activos = (datos || []).filter((p: any) => p && (p.activo === true || p.activo === '1' || p.activo === 1));
         const otros = activos.filter((p: any) => String(p.id) !== String(idActual));
         const shuffled = otros.sort(() => 0.5 - Math.random());
@@ -204,7 +203,7 @@ export default function ProductoDetalle() {
       }
 
       mostrarToast('Producto agregado al carrito');
-      setTimeout(() => window.location.reload(), 1500);
+      window.dispatchEvent(new CustomEvent('carrito-actualizado'));
     } catch (err) {
       console.error(err);
       mostrarToast('Hubo un error al agregar al carrito');
@@ -593,14 +592,11 @@ export default function ProductoDetalle() {
                 </div>
               </div>
           </div>
-          {/* Línea separadora */}
-            <div className="flex justify-center mt-20">
-              <div className="w-full h-[2px] bg-gray-300"></div>
-            </div>
-          {/* Recomendaciones */}
+          <div className="flex justify-center mt-20">
+            <div className="w-full h-[2px] bg-gray-300"></div>
+          </div>
           <div className="max-w-6xl mx-auto mt-20">
-          
-            <h5 className="text-2xl font-medium text-center mb-10 justify-center  text-black">TAMBIÉN PODRÍA GUSTARTE</h5>
+            <h5 className="text-2xl font-medium text-center mb-10 justify-center text-black">TAMBIÉN PODRÍA GUSTARTE</h5>
             {loadingRec ? (
               <p>Cargando recomendaciones...</p>
             ) : (

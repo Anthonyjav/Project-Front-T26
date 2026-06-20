@@ -26,6 +26,25 @@ type ItemCarrito = {
   color: string;
   producto: Producto;
 };
+type OrdenItemData = {
+  id: number;
+  cantidad: number;
+  talla?: string;
+  color?: string;
+  precio?: number;
+  producto?: {
+    id: number;
+    nombre: string;
+    imagen?: string[];
+  };
+  variante?: {
+    id: number;
+    talla?: string;
+    color?: string;
+    precio?: number;
+  };
+};
+
 type Orden = {
   id: number;
   estado: string;
@@ -35,6 +54,53 @@ type Orden = {
   orderIdIzipay?: string;
   shippingMethod?: string;
   paymentResponse?: any;
+  items?: OrdenItemData[];
+};
+
+const ajustarURL = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  const base = process.env.NEXT_PUBLIC_API_URL || 'https://api.sgstudio.shop';
+  return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+const extraerOrderId = (orden: Orden): string | null => {
+  if (orden.orderId) return orden.orderId;
+  if (orden.orderIdIzipay) return orden.orderIdIzipay;
+  try {
+    const resp = typeof orden.paymentResponse === 'string'
+      ? JSON.parse(orden.paymentResponse)
+      : orden.paymentResponse || {};
+    const meta = resp?.transactions?.[0]?.metadata || resp?.metadata || {};
+    return meta?.orderId || meta?.order_id || resp?.orderId || null;
+  } catch {
+    return null;
+  }
+};
+
+const extraerItemsDeOrden = (orden: Orden): { imagen?: string; nombre?: string }[] => {
+  if (orden.items && orden.items.length > 0) {
+    const fromBackend = orden.items.map((it) => ({
+      imagen: it.producto?.imagen?.[0] || (it as any).imagen || undefined,
+      nombre: it.producto?.nombre || '',
+    }));
+    if (fromBackend.some((i) => i.imagen)) return fromBackend;
+  }
+
+  try {
+    const resp = typeof orden.paymentResponse === 'string'
+      ? JSON.parse(orden.paymentResponse)
+      : orden.paymentResponse || {};
+    const meta = resp?.transactions?.[0]?.metadata || resp?.metadata || {};
+    const items = meta?.items || [];
+    const parsed = Array.isArray(items) ? items : typeof items === 'string' ? JSON.parse(items.replace(/\\"/g, '"')) : [];
+    return parsed.map((it: any) => ({
+      imagen: it.imagen || it.image || it.imagenUrl || undefined,
+      nombre: it.nombreProducto || it.nombre || it.title || '',
+    }));
+  } catch {
+    return [];
+  }
 };
 
 export default function PerfilUsuario() {
@@ -608,52 +674,121 @@ export default function PerfilUsuario() {
                 {tabActivo === 'Mis órdenes' && (
                   <div className="space-y-4">
                     {ordenes.length === 0 ? (
-                      <p className="text-gray-600">Aún no has realizado ninguna orden.</p>
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-500 font-medium">Aún no has realizado ninguna orden</p>
+                        <a href="/" className="inline-block mt-3 text-sm text-black underline hover:no-underline">Seguir comprando</a>
+                      </div>
                     ) : (
                       <div className="space-y-4">
-                        {ordenes.map((orden, index) => (
-                          <div
-                            key={orden.id}
-                            className="p-4 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition relative"
-                          >
-                            {orden.estado === 'completado' ? (
-                              <button
-                                onClick={() => {
-                                  setOrdenSeleccionada(orden);
-                                  setMostrarFormularioReclamo(true);
-                                }}
-                                className="absolute top-2 right-2 text-blue-600 hover:text-blue-800 text-sm"
-                              >
-                                Reclamos o quejas
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleEliminarOrden(orden.id)}
-                                className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
-                              >
-                                Eliminar
-                              </button>
-                            )}
+                        {ordenes.map((orden, index) => {
+                          const estadoColor: Record<string, string> = {
+                            pagado: 'bg-blue-100 text-blue-700',
+                            'recojo en tienda listo': 'bg-purple-100 text-purple-700',
+                            entregado: 'bg-green-100 text-green-700',
+                            'procesando pago': 'bg-yellow-100 text-yellow-700',
+                            'pago aceptado': 'bg-blue-100 text-blue-700',
+                            'pedido enviado': 'bg-indigo-100 text-indigo-700',
+                            'pedido entregado': 'bg-green-100 text-green-700',
+                            cancelado: 'bg-red-100 text-red-700',
+                          };
+                          const badgeColor = estadoColor[orden.estado] || 'bg-gray-100 text-gray-600';
 
-                            <div className="mt-4">
-                              <button
-                                onClick={() => openOrderDetails(orden.id)}
-                                className="inline-block px-3 py-1 text-sm border rounded hover:bg-gray-100"
-                              >
-                                Ver detalles
-                              </button>
+                          return (
+                            <div
+                              key={orden.id}
+                              className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                            >
+                              <div className="px-5 pt-5 pb-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                      <h3 className="text-base font-semibold text-gray-900">
+                                        Detalle Orden {extraerOrderId(orden) || `#${String(orden.id).slice(-6)}`}
+                                      </h3>
+                                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeColor}`}>
+                                        {orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1)}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      {new Date(orden.createdAt).toLocaleDateString('es-PE', {
+                                        year: 'numeric', month: 'long', day: 'numeric'
+                                      })}
+                                    </p>
+                                  </div>
+                                  <p className="text-lg font-bold text-gray-900 whitespace-nowrap ml-4">
+                                    PEN {Number(orden.total ?? 0).toFixed(2)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {(() => {
+                                const itemsPreview = extraerItemsDeOrden(orden);
+                                if (itemsPreview.length === 0) return null;
+                                return (
+                                  <div className="px-5 pb-3 space-y-2">
+                                    {itemsPreview.map((item, idx) => (
+                                      <div key={idx} className="flex items-center gap-3 py-2 border-t border-gray-100 first:border-t-0">
+                                        <div className="w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden flex-shrink-0">
+                                          {item.imagen ? (
+                                            <img
+                                              src={ajustarURL(item.imagen)}
+                                              alt={item.nombre || ''}
+                                              className="w-full h-full object-cover"
+                                            />
+                                          ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                                <path d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                                              </svg>
+                                            </div>
+                                          )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium text-gray-800 truncate">{item.nombre || 'Producto'}</p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
+
+                              <div className="px-5 pb-5 pt-3 border-t border-gray-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => {
+                                      setOrdenSeleccionada(orden);
+                                      setMostrarFormularioReclamo(true);
+                                    }}
+                                    className="text-sm text-gray-500 hover:text-blue-600 inline-flex items-center gap-1.5 transition-colors"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                      <path d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
+                                    </svg>
+                                    Reclamo
+                                  </button>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => openOrderDetails(orden.id)}
+                                    className="text-sm font-medium text-black hover:underline inline-flex items-center gap-1.5"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                                      <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                      <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Ver detalle completo
+                                  </button>
+
+                                </div>
+                              </div>
                             </div>
-
-                            <p className="text-sm text-gray-600">Orden {orden.orderId ? orden.orderId : `#${index + 1}`}</p>
-                            <p className="text-lg font-semibold">Total: PEN {Number(orden.total ?? 0).toFixed(2)}</p>
-                            <p className="text-sm text-gray-500">
-                              Estado: <span className="font-medium">{orden.estado}</span>
-                            </p>
-                            <p className="text-sm text-gray-400">
-                              Fecha: {new Date(orden.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -848,7 +983,7 @@ export default function PerfilUsuario() {
       {mostrarFormularioReclamo && ordenSeleccionada && (
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-lg font-semibold mb-4">Enviar reclamo para la orden #{ordenSeleccionada.id}</h2>
+            <h2 className="text-lg font-semibold mb-4">Detalle Orden {extraerOrderId(ordenSeleccionada) || `#${String(ordenSeleccionada.id).slice(-6)}`}</h2>
             <textarea
               value={mensajeReclamo}
               onChange={(e) => setMensajeReclamo(e.target.value)}
@@ -922,7 +1057,7 @@ export default function PerfilUsuario() {
                     ? `Detalle Orden ${orderDetails.orderId || orderDetails.orderIdIzipay}`
                     : `Detalle Orden #${orderDetails.id || '—'}`}
                 </h3>
-                <p className="text-sm text-gray-600">Estado: <span className="font-medium">{orderDetails.estado || orderDetails.status || 'N/D'}</span></p>
+                <p className="text-sm text-gray-600">Estado: <span className="font-medium">{(orderDetails.estado || orderDetails.status || 'N/D').charAt(0).toUpperCase() + (orderDetails.estado || orderDetails.status || '').slice(1)}</span></p>
                 <p className="text-sm text-gray-600">Total: PEN {Number(orderDetails.total || orderDetails.amount || 0).toFixed(2)}</p>
                 <p className="text-sm text-gray-500">Fecha: {orderDetails.createdAt ? new Date(orderDetails.createdAt).toLocaleString() : (orderDetails.date ? new Date(orderDetails.date).toLocaleString() : 'N/D')}</p>
               </div>

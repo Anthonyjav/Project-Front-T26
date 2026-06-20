@@ -62,6 +62,11 @@ export default function VistaOrdenes() {
     return items.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
   };
 
+  const estadosRecojo = ['pagado', 'recojo en tienda listo', 'entregado', 'cancelado'];
+  const estadosEnvio = ['procesando pago', 'pago aceptado', 'pedido enviado', 'pedido entregado', 'cancelado'];
+
+  const getEstadosValidos = (orden: Orden) => esRecojoTienda(orden) ? estadosRecojo : estadosEnvio;
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -186,6 +191,16 @@ export default function VistaOrdenes() {
       console.error('Error extracting metadata:', e);
       return {};
     }
+  };
+
+  const esRecojoTienda = (orden: Orden): boolean => {
+    const method = orden.metodoEnvio || orden.shippingMethod || '';
+    if (method === 'recojo') return true;
+    try {
+      const metadata = extractMetadata(orden);
+      if (metadata?.shippingMethod === 'recojo') return true;
+    } catch {}
+    return false;
   };
 
   // Determinar costo de envío basado en metadata o método
@@ -431,10 +446,9 @@ export default function VistaOrdenes() {
                       onChange={(e) => setNuevoEstado(e.target.value)}
                       className="border border-black px-2 py-1 rounded"
                     >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="completado">Completado</option>
-                      <option value="Enviado">Enviado</option>
-
+                      {getEstadosValidos(orden).map(est => (
+                        <option key={est} value={est}>{est.charAt(0).toUpperCase() + est.slice(1)}</option>
+                      ))}
                     </select>
                   ) : (
                     <span className="capitalize">{orden.estado}</span>
@@ -473,7 +487,7 @@ export default function VistaOrdenes() {
                           e.stopPropagation();
                           setEditandoId(orden.id);
                           setOrdenSeleccionadaId(null);
-                          setNuevoEstado(orden.estado);
+                          setNuevoEstado(orden.estado && getEstadosValidos(orden).includes(orden.estado) ? orden.estado : getEstadosValidos(orden)[0]);
                           fetchOrdenItems(orden.id);
                         }}
                         className={`px-2 py-1 border border-black rounded text-xs ${
