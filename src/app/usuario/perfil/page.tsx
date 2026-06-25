@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FaTrash } from 'react-icons/fa';
 
@@ -103,7 +103,7 @@ const extraerItemsDeOrden = (orden: Orden): { imagen?: string; nombre?: string }
   }
 };
 
-export default function PerfilUsuario() {
+function PerfilUsuarioContent() {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const [loadingCarrito, setLoadingCarrito] = useState(true);
@@ -1153,5 +1153,13 @@ export default function PerfilUsuario() {
 
     </section>
     
+  );
+}
+
+export default function PerfilUsuario() {
+  return (
+    <Suspense fallback={<p className="text-center mt-10 text-gray-600">Cargando...</p>}>
+      <PerfilUsuarioContent />
+    </Suspense>
   );
 }
