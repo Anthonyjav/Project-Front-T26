@@ -26,6 +26,7 @@ export default function WomanContent() {
 
         const allProductos = await resProd.json()
         const activos = (allProductos || []).filter((p: any) => p && (p.activo === true || p.activo === '1' || p.activo === 1))
+        activos.sort((a: any, b: any) => new Date(b.createdAt || b.id).getTime() - new Date(a.createdAt || a.id).getTime())
         setProductos(activos)
         setCategorias(await resCat.json())
       } catch (err) {

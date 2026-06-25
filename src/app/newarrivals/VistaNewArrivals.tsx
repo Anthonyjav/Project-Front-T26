@@ -24,6 +24,7 @@ export default function NewArrivalsPage() {
         const data = await res.json()
         // Filtrar sólo los seleccionados que también están activos
         const activos = (data || []).filter((p: any) => p && (p.activo === true || p.activo === '1' || p.activo === 1))
+        activos.sort((a: any, b: any) => new Date(b.createdAt || b.id).getTime() - new Date(a.createdAt || a.id).getTime())
         setProductos(activos)
 
         const categoriasUnicas = Array.from(
