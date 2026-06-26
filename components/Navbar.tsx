@@ -780,6 +780,11 @@ const bgClass = scrolled || showSearch || isWhiteBg
     </div>
     <button
       onClick={() => {
+        const role = localStorage.getItem('role');
+        if (role === 'admin') {
+          alert('Los administradores no pueden realizar compras');
+          return;
+        }
         router.push('/checkout');
         setShowCart(false);
       }}

@@ -50,6 +50,13 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (role === 'admin') {
+      alert('Los administradores no pueden realizar compras');
+      window.location.href = '/';
+      return;
+    }
+
     const fetchCarrito = async () => {
       const storedUser = localStorage.getItem('usuario');
       const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -98,6 +105,8 @@ export default function CheckoutPage() {
 
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [showOlvaModal, setShowOlvaModal] = useState(false);
+  const [refFocus, setRefFocus] = useState(false);
 
   useEffect(() => {
     fetch('https://free.e-api.net.pe/ubigeos.json', { cache: 'no-store' })
@@ -618,14 +627,23 @@ useEffect(() => {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-black bg-white focus:outline-none  focus:border-black transition-colors duration-300 ease-in-out" placeholder="Referencia"
-                  value={form.reference}
-                  onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+                <div className="relative">
+                  <input className={`w-full px-3 py-2 border rounded text-sm text-black bg-white focus:outline-none transition-colors duration-300 ease-in-out pr-10 ${form.shippingMethod === 'recojo' ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-100' : 'border-gray-200 focus:border-black'}`} placeholder="Referencia"
+                    value={form.reference}
+                    onChange={(e) => setForm({ ...form, reference: e.target.value })}
+                    disabled={form.shippingMethod === 'recojo'} />
+                  {form.shippingMethod === 'olva' && (
+                    <div className="absolute inset-y-0 right-3 flex items-center group">
+                      <span className="w-4 h-4 flex items-center justify-center rounded-full border-2 border-gray-600 text-xs text-gray-600 cursor-pointer select-none">?</span>
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-black text-white text-xs rounded-md px-3 py-2 opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 transition">Asegúrate de indicar bien tu dirección para una entrega exitosa.</div>
+                    </div>
+                  )}
+                </div>
 
                 <div>
                   <select className={selectClass('shippingMethod')}
                     value={form.shippingMethod}
-                    onChange={(e) => { setForm({ ...form, shippingMethod: e.target.value }); if (errors.shippingMethod) setErrors(p => ({ ...p, shippingMethod: '' })); }}
+                    onChange={(e) => { const val = e.target.value; setForm({ ...form, shippingMethod: val, reference: val === 'recojo' ? '' : form.reference }); if (val === 'olva') setShowOlvaModal(true); if (errors.shippingMethod) setErrors(p => ({ ...p, shippingMethod: '' })); }}
                   >
                     <option value="">Seleccione método de envío</option>
                     <option value="recojo">Recojo en tienda</option>
@@ -644,6 +662,40 @@ useEffect(() => {
           ) : (
             <div className="Contains-form">
               <div id="izipay-form"></div>
+            </div>
+          )}
+
+          {/* Modal OLVA */}
+          {showOlvaModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+              <div className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 relative">
+                <button
+                  onClick={() => setShowOlvaModal(false)}
+                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg"
+                >
+                  ✕
+                </button>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Información de envío</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  <p>El tiempo estimado de entrega es de <span className="font-semibold">3 a 4 días hábiles</span> para provincias.</p>
+                  <p>Los envíos se realizan de <span className="font-semibold">lunes a viernes</span>.</p>
+                  <p>Podrás hacer seguimiento de tu pedido en la página de Olva Courier.</p>
+                  <a
+                    href="https://www.olvacourier.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-2 text-blue-600 underline hover:text-blue-800 font-medium"
+                  >
+                    www.olvacourier.com
+                  </a>
+                </div>
+                <button
+                  onClick={() => setShowOlvaModal(false)}
+                  className="mt-5 w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  Entendido
+                </button>
+              </div>
             </div>
           )}
         </div>

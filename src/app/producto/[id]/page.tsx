@@ -164,6 +164,12 @@ export default function ProductoDetalle() {
       return;
     }
 
+    const role = typeof window !== 'undefined' ? localStorage.getItem('role') : null;
+    if (role === 'admin') {
+      mostrarToast('Los administradores no pueden agregar productos al carrito');
+      return;
+    }
+
     if (!producto?.id || !selectedColor || !selectedSize) {
       mostrarToast('Selecciona color y talla');
       return;
@@ -632,7 +638,7 @@ export default function ProductoDetalle() {
                     </div>
                     <div className="p-3 sm:p-4 text-center">
                       <h3 className="mt-2 text-black font-medium truncate">{item.nombre}</h3>
-                      <p className="font-medium text-2xl text-gray-500 mb-10">S/ {precio}</p>
+                      <p className="font-medium text text-gray-500 mb-10">S/ {precio}</p>
                     </div>
                   </div>
                 ))}

@@ -53,6 +53,7 @@ type Orden = {
   orderId?: string;
   orderIdIzipay?: string;
   shippingMethod?: string;
+  metodoEnvio?: string;
   paymentResponse?: any;
   items?: OrdenItemData[];
 };
@@ -378,7 +379,41 @@ function PerfilUsuarioContent() {
     return { metodoEnvio, referencia, distrito, direccion, telefono };
   };
 
-  const getItemColor = (it: any) => {
+  const getMetodoEnvio = (orden: Orden): string => {
+  return orden.metodoEnvio || orden.shippingMethod || '';
+};
+
+const esRecojo = (orden: Orden): boolean => {
+  return getMetodoEnvio(orden) === 'recojo';
+};
+
+const getEstadoMensaje = (orden: Orden): string => {
+  const esOlva = getMetodoEnvio(orden) === 'olva';
+  switch (orden.estado) {
+    case 'procesando pago':
+      return 'Estamos verificando el pago con Izipay. Recibirás un correo de confirmación en breve.';
+    case 'pago aceptado':
+      return '¡Gracias por tu compra! Tu pedido ya está en preparación. Pronto recibirás el número de seguimiento por WhatsApp.';
+    case 'pagado':
+      return '¡Pago recibido! Estamos preparando tu pedido para recojo en tienda. Te avisaremos cuando esté listo.';
+    case 'recojo en tienda listo':
+      return 'Tu pedido ya está listo para recoger en Jr. Pizarro 818 – Gal. Plaza Pizarro Int. 101. Horario: Lun-Sáb 11:00 am a 08:30 pm.';
+    case 'pedido enviado':
+      return esOlva
+        ? 'Tu pedido ha sido entregado a OLVA Courier. Revisa tu WhatsApp para el número de tracking y seguimiento.'
+        : 'Tu pedido está en camino. Revisa tu WhatsApp para el seguimiento.';
+    case 'pedido entregado':
+      return 'Tu pedido ha sido entregado correctamente. ¡Disfruta tus prendas! Si tienes alguna consulta, escríbenos.';
+    case 'entregado':
+      return 'Tu pedido ha sido marcado como entregado. ¡Gracias por confiar en nosotros!';
+    case 'cancelado':
+      return 'Este pedido ha sido cancelado. Si tienes dudas, contáctanos.';
+    default:
+      return '';
+  }
+};
+
+const getItemColor = (it: any) => {
     // Prioridad: item directo -> producto -> metadata.items (transacción) -> atributos varios
     const direct = it.color || it.colour || it.colorName || it.attributes?.color;
     if (direct) return direct;
@@ -719,6 +754,11 @@ function PerfilUsuarioContent() {
                                         year: 'numeric', month: 'long', day: 'numeric'
                                       })}
                                     </p>
+                                    {getEstadoMensaje(orden) && (
+                                      <p className="text-sm text-gray-600 mt-2 leading-relaxed max-w-xl">
+                                        {getEstadoMensaje(orden)}
+                                      </p>
+                                    )}
                                   </div>
                                   <p className="text-lg font-bold text-gray-900 whitespace-nowrap ml-4">
                                     PEN {Number(orden.total ?? 0).toFixed(2)}
