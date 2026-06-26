@@ -58,7 +58,7 @@ export default function OlvideMiContrasenaPage() {
             <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FaEnvelope className="text-green-600 text-xl" />
             </div>
-            <h2 className="font-[Beige] text-2xl text-black mb-2">Revisa tu correo</h2>
+            <h2 className="text-2xl text-center text-black mb-2">Revisa tu correo</h2>
             <p className="text-gray-500 text-sm leading-relaxed">
               Si el correo <strong className="text-black">{email}</strong> está registrado,
               recibirás un enlace para restablecer tu contraseña.
@@ -67,7 +67,7 @@ export default function OlvideMiContrasenaPage() {
           </div>
         ) : (
           <>
-            <h2 className="font-[Beige] text-2xl text-black mb-2">¿Olvidaste tu contraseña?</h2>
+            <h2 className="text-2xl text-center text-black mb-2">¿Olvidaste tu contraseña?</h2>
             <p className="text-gray-500 text-sm mb-6">
               Ingresa tu correo y te enviaremos un enlace para restablecerla.
             </p>
