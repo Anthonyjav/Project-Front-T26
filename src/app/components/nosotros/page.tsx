@@ -36,10 +36,13 @@ const Nosotros = () => {
           <div>
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">¿Dónde estamos?</h2>
             <p className="text-gray-700 mb-2">
-              Tienda de ropa, lista para elevar tus outfits con nosotros ✨
+              Estamos ubicados en una zona estratégica, en el centro de Trujillo. 
+            </p>
+             <p className="text-gray-700 mb-2">
+              Conoce nuestras instalaciones y vive la experiencia SG.✨
             </p>
             <p className="text-gray-700 mb-2">
-              <strong>Dirección:</strong> Jr. Pizarro 818, Int. 117 - Centro Comercial Plaza Pizarro
+              <strong>Dirección:</strong> Jr. Pizarro 818, Int. 101 - Centro Comercial Plaza Pizarro
             </p>
             <p className="text-gray-700">
               <strong>Horario:</strong> Lunes a Sábado de 10:30 am a 8:30 pm
