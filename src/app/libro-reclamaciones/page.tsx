@@ -77,7 +77,7 @@ export default function LibroReclamacionesPage() {
               name="fecha"
               value={form.fecha}
               onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
               required
             />
           </div>
@@ -94,7 +94,7 @@ export default function LibroReclamacionesPage() {
                   name="tipoDoc"
                   value={form.tipoDoc}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
                   required
                 >
                   <option value="">Seleccionar</option>
@@ -105,27 +105,27 @@ export default function LibroReclamacionesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nro. documento</label>
-                <input type="text" name="nroDoc" value={form.nroDoc} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="nroDoc" value={form.nroDoc} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
-                <input type="text" name="nombres" value={form.nombres} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="nombres" value={form.nombres} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
-                <input type="text" name="apellidos" value={form.apellidos} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="apellidos" value={form.apellidos} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="email" name="email" value={form.email} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                <input type="text" name="telefono" value={form.telefono} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="telefono" value={form.telefono} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                <input type="text" name="direccion" value={form.direccion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="direccion" value={form.direccion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
             </div>
           </div>
@@ -138,23 +138,23 @@ export default function LibroReclamacionesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombres</label>
-                <input type="text" name="menoNombres" value={form.menoNombres} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="text" name="menoNombres" value={form.menoNombres} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
-                <input type="text" name="menoApellidos" value={form.menoApellidos} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="text" name="menoApellidos" value={form.menoApellidos} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
-                <input type="email" name="menoEmail" value={form.menoEmail} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="email" name="menoEmail" value={form.menoEmail} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                <input type="text" name="menoTelefono" value={form.menoTelefono} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="text" name="menoTelefono" value={form.menoTelefono} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Dirección</label>
-                <input type="text" name="menoDireccion" value={form.menoDireccion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="text" name="menoDireccion" value={form.menoDireccion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
             </div>
           </div>
@@ -167,15 +167,15 @@ export default function LibroReclamacionesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Producto o servicio contratado</label>
-                <input type="text" name="productoServicio" value={form.productoServicio} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="productoServicio" value={form.productoServicio} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Monto reclamado (s/)</label>
-                <input type="text" name="monto" value={form.monto} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+                <input type="text" name="monto" value={form.monto} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <input type="text" name="descripcion" value={form.descripcion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
+                <input type="text" name="descripcion" value={form.descripcion} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" />
               </div>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function LibroReclamacionesPage() {
                   name="tipo"
                   value={form.tipo}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black"
                   required
                 >
                   <option value="">Seleccionar</option>
@@ -203,11 +203,11 @@ export default function LibroReclamacionesPage() {
             </div>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Detalle del reclamo</label>
-              <textarea name="detalle" value={form.detalle} onChange={handleChange} rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+              <textarea name="detalle" value={form.detalle} onChange={handleChange} rows={3} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
             </div>
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Pedido</label>
-              <textarea name="pedido" value={form.pedido} onChange={handleChange} rows={2} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
+              <textarea name="pedido" value={form.pedido} onChange={handleChange} rows={2} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-black focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black" required />
             </div>
           </div>
 
