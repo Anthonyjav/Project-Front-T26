@@ -1,17 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useToast } from './ToastContext';
 
 type Reclamo = {
   id: number;
   mensaje: string;
   estado: string;
-  usuarioId: number;
-  ordenId: number;
+  usuarioId: number | null;
+  ordenId: number | null;
+  fecha: string;
+  tipoDoc: string;
+  nroDoc: string;
+  nombres: string;
+  apellidos: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+  menoNombres: string;
+  menoApellidos: string;
+  menoEmail: string;
+  menoTelefono: string;
+  menoDireccion: string;
+  productoServicio: string;
+  monto: string;
+  descripcion: string;
+  tipo: string;
+  detalle: string;
+  pedido: string;
   createdAt: string;
 };
 
 export default function ListarReclamos() {
+  const { showToast } = useToast();
   const [reclamos, setReclamos] = useState<Reclamo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,27 +42,26 @@ export default function ListarReclamos() {
       .then((data) => setReclamos(data))
       .catch((err) => {
         console.error('Error al cargar reclamos:', err);
-        alert('No se pudieron cargar los reclamos');
+        showToast('No se pudieron cargar los reclamos', 'error');
       })
       .finally(() => setLoading(false));
   }, []);
 
   const handleEliminar = async (id: number) => {
-    const confirmar = confirm('¿Estás seguro de eliminar este reclamo?');
-    if (!confirmar) return;
-
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/reclamos/${id}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error('Error al eliminar el reclamo');
 
       setReclamos((prev) => prev.filter((r) => r.id !== id));
-      alert('Reclamo eliminado correctamente');
+      showToast('Reclamo eliminado correctamente');
     } catch (error) {
       console.error(error);
-      alert('No se pudo eliminar el reclamo');
+      showToast('No se pudo eliminar el reclamo', 'error');
     }
   };
 
@@ -64,13 +84,38 @@ export default function ListarReclamos() {
           >
             <div className="text-sm space-y-1 text-black">
               <p><strong>Reclamo ID:</strong> {reclamo.id}</p>
-              <p><strong>Usuario ID:</strong> {reclamo.usuarioId}</p>
-              <p><strong>Orden ID:</strong> {reclamo.ordenId}</p>
-              <p><strong>Mensaje:</strong> {reclamo.mensaje}</p>
               <p><strong>Estado:</strong> <span className="font-medium capitalize">{reclamo.estado}</span></p>
-              <p className="text-xs text-gray-600">
-                Enviado el: {new Date(reclamo.createdAt).toLocaleString()}
-              </p>
+              <p className="text-xs text-gray-500">Enviado el: {new Date(reclamo.createdAt).toLocaleString()}</p>
+
+              <hr className="my-2 border-gray-200" />
+
+              <p className="font-semibold text-base">Datos del cliente</p>
+              <p><strong>Fecha:</strong> {reclamo.fecha || '-'}</p>
+              <p><strong>Documento:</strong> {reclamo.tipoDoc} {reclamo.nroDoc ? `- ${reclamo.nroDoc}` : ''}</p>
+              <p><strong>Nombres:</strong> {reclamo.nombres} {reclamo.apellidos}</p>
+              <p><strong>Email:</strong> {reclamo.email}</p>
+              <p><strong>Teléfono:</strong> {reclamo.telefono}</p>
+              <p><strong>Dirección:</strong> {reclamo.direccion}</p>
+
+              {(reclamo.menoNombres || reclamo.menoApellidos) && (
+                <>
+                  <hr className="my-2 border-gray-200" />
+                  <p className="font-semibold text-base">Datos del representante (menor de edad)</p>
+                  <p><strong>Nombres:</strong> {reclamo.menoNombres} {reclamo.menoApellidos}</p>
+                  <p><strong>Email:</strong> {reclamo.menoEmail}</p>
+                  <p><strong>Teléfono:</strong> {reclamo.menoTelefono}</p>
+                  <p><strong>Dirección:</strong> {reclamo.menoDireccion}</p>
+                </>
+              )}
+
+              <hr className="my-2 border-gray-200" />
+              <p className="font-semibold text-base">Detalle del reclamo</p>
+              <p><strong>Tipo:</strong> <span className="capitalize">{reclamo.tipo}</span></p>
+              <p><strong>Producto/Servicio:</strong> {reclamo.productoServicio}</p>
+              <p><strong>Monto:</strong> S/ {reclamo.monto}</p>
+              <p><strong>Descripción:</strong> {reclamo.descripcion}</p>
+              <p><strong>Detalle:</strong> {reclamo.detalle}</p>
+              <p><strong>Pedido:</strong> {reclamo.pedido}</p>
             </div>
             <button
               onClick={() => handleEliminar(reclamo.id)}
