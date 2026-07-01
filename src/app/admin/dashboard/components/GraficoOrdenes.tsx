@@ -28,7 +28,7 @@ type UsuarioPorMes = { mes: string; cantidad: number; };
 type ProductoVendido = { nombreProducto: string; cantidad: number; };
 type CategoriaResumen = { nombre: string; cantidad: number; };
 
-export default function DashboardGraficos() {
+export default function GraficoOrdenes() {
   const [productosVendidos, setProductosVendidos] = useState<ProductoVendido[]>([]);
   const [ordenesPorDia, setOrdenesPorDia] = useState<VentaPorDia[]>([]);
   const [ingresosPorDia, setIngresosPorDia] = useState<VentaPorDia[]>([]);

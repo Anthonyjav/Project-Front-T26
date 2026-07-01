@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import imageCompression from 'browser-image-compression';
 
-export default function CrearProductoForm() {
+export default function CrearProductoForm({ onGuardado }) {
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -12,6 +12,7 @@ export default function CrearProductoForm() {
   const [previews, setPreviews] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [comprimiendo, setComprimiendo] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const [variantes, setVariantes] = useState([
     {
@@ -54,25 +55,25 @@ export default function CrearProductoForm() {
   }, [imagenes]);
 
   const handleImageChange = async (e) => {
-  const files = Array.from(e.target.files);
-  const options = {
-    maxSizeMB: 3,
-    maxWidthOrHeight: 1920,
-    useWebWorker: true,
+    const files = Array.from(e.target.files);
+    const options = {
+      maxSizeMB: 3,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+    try {
+      setComprimiendo(true);
+      const compressed = await Promise.all(
+        files.map((f) => imageCompression(f, options))
+      );
+      setImagenes(compressed);
+    } catch (err) {
+      console.error('Error comprimiendo imágenes:', err);
+      setMensaje('Error al procesar las imágenes');
+    } finally {
+      setComprimiendo(false);
+    }
   };
-  try {
-    setComprimiendo(true);
-    const compressed = await Promise.all(
-      files.map((f) => imageCompression(f, options))
-    );
-    setImagenes(compressed);
-  } catch (err) {
-    console.error('Error comprimiendo imágenes:', err);
-    setMensaje('Error al procesar las imágenes');
-  } finally {
-    setComprimiendo(false);
-  }
-};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,6 +123,7 @@ export default function CrearProductoForm() {
     imagenes.forEach((img) => formData.append('imagen', img));
 
     try {
+      setGuardando(true);
       const token = localStorage.getItem('token');
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/productos`, {
@@ -136,7 +138,6 @@ export default function CrearProductoForm() {
       try {
         data = await res.json();
       } catch {
-        // ignore; server may not return JSON on error
       }
 
       if (!res.ok) {
@@ -162,9 +163,14 @@ export default function CrearProductoForm() {
       setImagenes([]);
       setPreviews([]);
 
+      if (typeof onGuardado === 'function') {
+        onGuardado();
+      }
     } catch (error) {
       setMensaje('Error al conectar con el servidor');
       console.error(error);
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -222,7 +228,6 @@ export default function CrearProductoForm() {
         encType="multipart/form-data"
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        {/* Columna 1 */}
         <div className="space-y-4">
           <input
             type="text"
@@ -263,7 +268,6 @@ export default function CrearProductoForm() {
           />
         </div>
 
-        {/* Columna 2 - Variantes */}
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -393,7 +397,6 @@ export default function CrearProductoForm() {
           />
         </div>
 
-        {/* Campos globales */}
         <div className="md:col-span-2 space-y-4">
           <select
             value={categoriaId}
@@ -434,9 +437,10 @@ export default function CrearProductoForm() {
 
           <button
             type="submit"
-            className="w-full py-2 bg-gray-800 text-white rounded"
+            disabled={guardando || comprimiendo}
+            className="w-full py-2 bg-gray-800 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Crear Producto
+            {guardando ? 'Guardando...' : comprimiendo ? 'Comprimiendo imágenes...' : 'Crear Producto'}
           </button>
 
           {mensaje && (

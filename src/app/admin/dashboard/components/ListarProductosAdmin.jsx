@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useMemo, memo } from 'react';
+import { useToast } from './ToastContext';
 
 const cloudinaryThumb = (url) => {
   if (!url || !url.includes('cloudinary.com')) return url;
@@ -205,6 +206,7 @@ const ModalEditar = memo(({ productoEditando, variantes, categorias, nuevaImagen
 ));
 
 export default function ListarProductosAdmin() {
+  const { showToast } = useToast();
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -281,7 +283,6 @@ export default function ListarProductosAdmin() {
   const cambiarPagina = (nueva) => setPaginaActual(nueva);
 
   const handleEliminar = async (id) => {
-    if (!confirm('¿Seguro que quieres eliminar este producto?')) return;
     setEliminando(id);
     try {
       const token = localStorage.getItem('token');
@@ -291,8 +292,9 @@ export default function ListarProductosAdmin() {
       });
       if (!res.ok) throw new Error('Error al eliminar producto');
       setProductos((prev) => prev.filter((p) => p.id !== id));
+      showToast('Producto eliminado correctamente');
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setEliminando(null);
     }
@@ -392,8 +394,9 @@ export default function ListarProductosAdmin() {
         prev.map((p) => (p.id === productoActualizado.id ? productoActualizado : p))
       );
       cerrarModal();
+      showToast('Producto actualizado correctamente');
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, 'error');
     }
   };
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
+import { useToast } from './ToastContext';
 
 type Categoria = {
   id: number;
@@ -9,11 +10,11 @@ type Categoria = {
 };
 
 export default function ListaCategorias() {
+  const { showToast } = useToast();
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [eliminandoId, setEliminandoId] = useState<number | null>(null);
 
   useEffect(() => {
-    
     const fetchCategorias = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categorias`);
@@ -26,22 +27,19 @@ export default function ListaCategorias() {
     fetchCategorias();
   }, []);
 
-  /* ──────────────── eliminar categoría ──────────────── */
   const handleEliminar = async (id: number) => {
-    if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
-
     const copia = categorias;
     setCategorias((prev) => prev.filter((c) => c.id !== id));
     setEliminandoId(id);
 
     try {
-        const token = localStorage.getItem('token'); 
+      const token = localStorage.getItem('token');
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/categorias/${id}`,
-        { method: 'DELETE',
-          headers: {Authorization: `Bearer ${token}`,
-          },
-         }
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
 
       if (!res.ok) {
@@ -50,17 +48,15 @@ export default function ListaCategorias() {
         throw new Error(msg);
       }
 
-      alert('Categoría eliminada correctamente'); // Opcional
+      showToast('Categoría eliminada correctamente');
     } catch (err: any) {
-      setCategorias(copia); // Deshacer eliminación optimista
-      alert(err.message);   // ← Aquí se mostrará: "No se puede eliminar la categoría porque tiene productos asociados."
+      setCategorias(copia);
+      showToast(err.message, 'error');
     } finally {
       setEliminandoId(null);
     }
   };
 
-
-  /* ─────────────────── UI ─────────────────── */
   return (
     <ul className="space-y-2">
       {categorias.map((categoria) => (

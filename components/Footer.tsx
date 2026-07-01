@@ -43,7 +43,9 @@ export default function Footer() {
           </Link>
         </li>
         <li>
-          <img src="/images/LIBRO-RECLAMACIONES.png" alt="Libro de Reclamaciones" className="w-32 mt-2" />
+          <Link href="/libro-reclamaciones">
+            <img src="/images/LIBRO-RECLAMACIONES.png" alt="Libro de Reclamaciones" className="w-32 mt-2 hover:opacity-80 transition-opacity" />
+          </Link>
         </li>
       </ul>
     </div>

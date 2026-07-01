@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useToast } from './ToastContext';
 
 type Orden = {
   id: number;
@@ -46,6 +47,7 @@ type Producto = {
 };
 
 export default function VistaOrdenes() {
+  const { showToast } = useToast();
   const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [nuevoEstado, setNuevoEstado] = useState('');
@@ -216,9 +218,10 @@ export default function VistaOrdenes() {
 
   const cambiarEstado = async (id: number, estado: string) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ estado }),
       });
 
@@ -232,40 +235,41 @@ export default function VistaOrdenes() {
       setEditandoId(null);
       setOrdenItems([]);
       setOrdenSeleccionadaId(null);
+      showToast('Estado actualizado correctamente');
     } catch (err) {
       console.error(err);
-      alert('Error al actualizar estado');
+      showToast('Error al actualizar estado', 'error');
     }
   };
 
   const eliminarOrden = async (id: number) => {
-    if (!confirm('¿Deseas eliminar esta orden?')) return;
-
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes/${id}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Error al eliminar orden');
 
       setOrdenes((prev) => prev.filter((orden) => orden.id !== id));
+      showToast('Orden eliminada correctamente');
     } catch (err) {
       console.error(err);
-      alert('No se pudo eliminar la orden');
+      showToast('No se pudo eliminar la orden', 'error');
     }
   };
 
-  // Validación: no eliminar último item
   const eliminarItem = async (id: number) => {
     if (ordenItems.length <= 1) {
-      alert('La orden debe tener al menos un producto, no puedes eliminar este item.');
+      showToast('La orden debe tener al menos un producto', 'error');
       return;
     }
 
-    if (!confirm('¿Deseas eliminar este producto de la orden?')) return;
-
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orden-items/${id}`, {
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) throw new Error('No se pudo eliminar el item');
@@ -273,15 +277,15 @@ export default function VistaOrdenes() {
       const nuevosItems = ordenItems.filter((item) => item.id !== id);
       setOrdenItems(nuevosItems);
 
-      // Recalcular subtotal, envío y total
       const nuevoSubtotal = calcularTotal(nuevosItems);
       const ordenActual = ordenes.find(o => o.id === editandoId);
       const envioToSend = determineEnvioForOrder(ordenActual);
       const nuevoTotal = nuevoSubtotal + envioToSend;
 
+      const token2 = localStorage.getItem('token');
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes/${editandoId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token2}` },
         body: JSON.stringify({ total: nuevoTotal, subtotal: nuevoSubtotal, envio: envioToSend }),
       });
 
@@ -291,34 +295,36 @@ export default function VistaOrdenes() {
         )
       );
 
+      showToast('Item eliminado correctamente');
     } catch (error) {
       console.error(error);
-      alert('Error al eliminar item');
+      showToast('Error al eliminar item', 'error');
     }
   };
 
   const guardarItemActualizado = async (item: OrdenItem) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/orden-items/${item.id}`,
         {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ cantidad: item.cantidad }),
         }
       );
       
       if (!res.ok) throw new Error('No se pudo actualizar el item');
 
-      // Actualizar subtotal, envío y total después de guardar el item
       const nuevoSubtotal = calcularTotal(ordenItems);
       const ordenActual = ordenes.find(o => o.id === editandoId);
       const envioToSend = determineEnvioForOrder(ordenActual);
       const nuevoTotal = nuevoSubtotal + envioToSend;
 
+      const token2 = localStorage.getItem('token');
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes/${editandoId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token2}` },
         body: JSON.stringify({ total: nuevoTotal, subtotal: nuevoSubtotal, envio: envioToSend }),
       });
 
@@ -328,38 +334,36 @@ export default function VistaOrdenes() {
         )
       );
 
-      alert('Item actualizado');
+      showToast('Item actualizado correctamente');
       setEditandoId(null);
       setOrdenItems([]);
       setOrdenSeleccionadaId(null);
     } catch (error) {
       console.error(error);
-      alert('Error al actualizar item');
+      showToast('Error al actualizar item', 'error');
     }
   };
 
-  // Función para agregar producto nuevo a la orden, con POST a backend para crear item
   const agregarProducto = async () => {
-    if (productoParaAgregar === null) return alert('Selecciona un producto para agregar');
+    if (productoParaAgregar === null) return showToast('Selecciona un producto para agregar', 'error');
 
-    // Verificar que no exista ya el producto en la orden
     if (ordenItems.some(item => item.productoId === productoParaAgregar)) {
-      return alert('Este producto ya está en la orden');
+      return showToast('Este producto ya está en la orden', 'error');
     }
 
     const producto = productos.find(p => p.id === productoParaAgregar);
-    if (!producto) return alert('Producto no encontrado');
+    if (!producto) return showToast('Producto no encontrado', 'error');
 
     try {
-      // Crear item nuevo en backend
+      const token = localStorage.getItem('token');
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orden-items`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           ordenId: editandoId,
           productoId: producto.id,
           cantidad: 1,
-          precio: producto.precio, // asumimos que tienes el precio en producto
+          precio: producto.precio,
         }),
       });
 
@@ -372,15 +376,15 @@ export default function VistaOrdenes() {
       setAgregandoProducto(false);
       setProductoParaAgregar(null);
 
-      // Actualizar subtotal, envío y total en backend y frontend
       const nuevoSubtotal = calcularTotal(nuevosItems);
       const ordenActual = ordenes.find(o => o.id === editandoId);
       const envioToSend = determineEnvioForOrder(ordenActual);
       const nuevoTotal = nuevoSubtotal + envioToSend;
 
+      const token2 = localStorage.getItem('token');
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ordenes/${editandoId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token2}` },
         body: JSON.stringify({ total: nuevoTotal, subtotal: nuevoSubtotal, envio: envioToSend }),
       });
 
@@ -390,9 +394,10 @@ export default function VistaOrdenes() {
         )
       );
 
+      showToast('Producto agregado correctamente');
     } catch (error) {
       console.error(error);
-      alert('Error al agregar producto');
+      showToast('Error al agregar producto', 'error');
     }
   };
 

@@ -67,7 +67,7 @@ export default function Navbar() {
 
   const router = useRouter();
   const pathname = usePathname();
-  const isWhiteBg = pathname === '/login'  ||  pathname === '/components/nosotros'  ||  pathname === '/components/nosotros' || pathname === '/registro' || pathname === '/olvide-mi-contrasena' || pathname === '/resetear-contrasena' || pathname === '/usuario/perfil' || pathname === '/buscar' || pathname === '/terminos' || pathname === '/preguntas' || pathname === '/checkout' || pathname === '/pago-exitoso' || pathname === '/pago-fallido' || pathname === '/woman' || pathname.startsWith('/woman?') || pathname === '/newarrivals' || pathname.startsWith('/producto/');
+  const isWhiteBg = pathname === '/login'|| pathname=== '/libro-reclamaciones'||  pathname === '/components/nosotros'  ||  pathname === '/components/nosotros' || pathname === '/registro' || pathname === '/olvide-mi-contrasena' || pathname === '/resetear-contrasena' || pathname === '/usuario/perfil' || pathname === '/buscar' || pathname === '/terminos' || pathname === '/preguntas' || pathname === '/checkout' || pathname === '/pago-exitoso' || pathname === '/pago-fallido' || pathname === '/woman' || pathname.startsWith('/woman?') || pathname === '/newarrivals' || pathname.startsWith('/producto/');
 
   const ajustarURL = (url?: string) => {
     if (!url) return '';

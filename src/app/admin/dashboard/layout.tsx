@@ -1,3 +1,5 @@
+import { ToastProvider } from './components/ToastContext';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>; // No hay Navbar ni Footer aquí
+  return <ToastProvider>{children}</ToastProvider>;
 }

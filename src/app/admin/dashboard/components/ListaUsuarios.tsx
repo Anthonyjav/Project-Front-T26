@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useToast } from './ToastContext';
 
 type Usuario = {
   id: number;
@@ -11,6 +12,7 @@ type Usuario = {
 };
 
 export default function ListarUsuarios() {
+  const { showToast } = useToast();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [editandoId, setEditandoId] = useState<number | null>(null);
@@ -46,13 +48,11 @@ export default function ListarUsuarios() {
       const token = localStorage.getItem('token');
 
       if (!token) {
-        alert('No estás autenticado');
+        showToast('No estás autenticado', 'error');
         return;
       }
 
-      const body = {
-        rol: usuario.rol,
-      };
+      const body = { rol: usuario.rol };
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/usuarios/${usuario.id}`,
@@ -60,7 +60,7 @@ export default function ListarUsuarios() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // 🔑 CLAVE
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(body),
         }
@@ -72,32 +72,31 @@ export default function ListarUsuarios() {
       }
 
       setEditandoId(null);
+      showToast('Rol actualizado correctamente');
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
+      showToast('Error al actualizar usuario', 'error');
     }
   };
 
-
-
   const eliminarUsuario = async (id: number) => {
-    if (!confirm('¿Eliminar este usuario?')) return;
-
     try {
       const token = localStorage.getItem('token');
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/usuarios/${id}`, {
         method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
+      if (!res.ok) throw new Error('Error al eliminar usuario');
+
       setUsuarios((prev) => prev.filter((u) => u.id !== id));
+      showToast('Usuario eliminado correctamente');
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
+      showToast('Error al eliminar usuario', 'error');
     }
   };
-
 
   return (
     <div className="p-6">

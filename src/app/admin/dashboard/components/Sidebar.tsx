@@ -11,7 +11,7 @@ export default function Sidebar({
   onLogout: () => void;
 }) {
   return (
-    <aside className="w-72 p-6 flex flex-col justify-between bg-white border-r border-gray-200 shadow-sm">
+    <aside className="w-72 p-6 flex flex-col justify-between bg-white border-r border-gray-200 shadow-sm sticky top-0 h-screen">
       <div>
         <h1 className="text-3xl font-extrabold mb-8 text-center">Panel Admin</h1>
         <nav className="flex flex-col gap-3">
