@@ -159,8 +159,11 @@ export default function ProductoDetalle() {
     const userId = usuario?.id;
 
     if (!userId || !token) {
-      mostrarToast('Debe iniciar sesión para agregar productos al carrito');
-      router.push('/login');
+      setToastMessage('Debe iniciar sesión para agregar productos al carrito');
+      setShowToast(true);
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 800);
       return;
     }
 
@@ -201,8 +204,11 @@ export default function ProductoDetalle() {
       if (!res.ok) {
         const errorText = await res.text();
         if (res.status === 401 || res.status === 403) {
-          mostrarToast('Debes iniciar sesión o registrarte para agregar productos');
-          router.push('/login');
+          setToastMessage('Debes iniciar sesión o registrarte para agregar productos');
+          setShowToast(true);
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 800);
           return;
         }
         throw new Error(`Error al agregar al carrito (${res.status}): ${errorText}`);
