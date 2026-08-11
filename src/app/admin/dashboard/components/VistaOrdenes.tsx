@@ -38,6 +38,9 @@ type OrdenItem = {
   productoId: number;
   cantidad: number;
   precio: number;
+  talla?: string | null;
+  color?: string | null;
+  variante?: { id: number; talla?: string | null; color?: string | null } | null;
 };
 
 type Producto = {
@@ -405,6 +408,7 @@ export default function VistaOrdenes() {
     const producto = productos.find((p) => p.id === id);
     return producto ? producto.nombre : `ID ${id}`;
   };
+  
 
   if (loading) return <p className="text-center text-gray-600">Cargando órdenes...</p>;
 
@@ -549,6 +553,7 @@ export default function VistaOrdenes() {
             <thead className="bg-black text-white">
               <tr>
                 <th className="px-4 py-2 border border-black">Producto</th>
+                <th className="px-4 py-2 border border-black">Talla</th>
                 <th className="px-4 py-2 border border-black">Cantidad</th>
                 <th className="px-4 py-2 border border-black">Precio</th>
               </tr>
@@ -558,6 +563,9 @@ export default function VistaOrdenes() {
                 <tr key={item.id} className="hover:bg-gray-100">
                   <td className="px-4 py-2 border border-black">
                     {getNombreProducto(item.productoId)}
+                  </td>
+                  <td className="px-4 py-2 border border-black">
+                    {item.talla || item.variante?.talla || '—'}
                   </td>
                   <td className="px-4 py-2 border border-black">{item.cantidad}</td>
                   <td className="px-4 py-2 border border-black">
@@ -622,6 +630,7 @@ export default function VistaOrdenes() {
             <thead className="bg-black text-white">
               <tr>
                 <th className="px-4 py-2 border border-black">Producto</th>
+                <th className="px-4 py-2 border border-black">Talla</th>
                 <th className="px-4 py-2 border border-black">Cantidad</th>
                 <th className="px-4 py-2 border border-black">Precio</th>
                 <th className="px-4 py-2 border border-black">Acciones</th>
@@ -632,6 +641,9 @@ export default function VistaOrdenes() {
                 <tr key={item.id} className="hover:bg-gray-100">
                   <td className="px-4 py-2 border border-black">
                     {getNombreProducto(item.productoId)}
+                  </td>
+                  <td className="px-4 py-2 border border-black">
+                    {item.talla || item.variante?.talla || '—'}
                   </td>
                   <td className="px-4 py-2 border border-black">
                     <input
@@ -829,6 +841,7 @@ export default function VistaOrdenes() {
                 <thead className="bg-gray-200">
                   <tr>
                     <th className="px-4 py-2 border text-left">Producto</th>
+                    <th className="px-4 py-2 border text-left">Talla</th>
                     <th className="px-4 py-2 border text-center">Cantidad</th>
                     <th className="px-4 py-2 border text-right">Precio Unit.</th>
                     <th className="px-4 py-2 border text-right">Subtotal</th>
@@ -841,6 +854,9 @@ export default function VistaOrdenes() {
                         <td className="px-4 py-2 border">
                           {getNombreProducto(item.productoId)}
                         </td>
+                        <td className="px-4 py-2 border">
+                          {item.talla || item.variante?.talla || '—'}
+                        </td>
                         <td className="px-4 py-2 border text-center">{item.cantidad}</td>
                         <td className="px-4 py-2 border text-right">
                           PEN {Number(item.precio ?? 0).toFixed(2)}
@@ -852,7 +868,7 @@ export default function VistaOrdenes() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="px-4 py-2 border text-center text-gray-500">
+                      <td colSpan={5} className="px-4 py-2 border text-center text-gray-500">
                         No hay productos en esta orden
                       </td>
                     </tr>
