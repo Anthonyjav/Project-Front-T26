@@ -149,6 +149,18 @@ export default function VistaOrdenes() {
           if (resp?.customer?.billingDetails?.identityCode) ordenCompleta.identityCode = resp.customer.billingDetails.identityCode;
         } catch (e) {}
       }
+
+      // Extraer direccion del paymentResponse si no viene directa
+      if (!ordenCompleta.direccion) {
+        try {
+          const resp = typeof orden.paymentResponse === 'string'
+            ? JSON.parse(orden.paymentResponse)
+            : orden.paymentResponse;
+          if (resp?.customer?.shippingDetails?.address) ordenCompleta.direccion = resp.customer.shippingDetails.address;
+          else if (resp?.customer?.billingDetails?.address) ordenCompleta.direccion = resp.customer.billingDetails.address;
+          else if (resp?.shippingAddress?.address) ordenCompleta.direccion = resp.shippingAddress.address;
+        } catch (e) {}
+      }
       
       // Obtener items y calcular subtotal
       const items = await fetchOrdenItems(ordenCompleta.id);
@@ -737,6 +749,12 @@ export default function VistaOrdenes() {
             {(hasValue(modalDetalle.pais) || hasValue(modalDetalle.departamento) || hasValue(modalDetalle.provincia) || hasValue(modalDetalle.distrito) || hasValue(modalDetalle.direccion)) && (
               <div className="border-t pt-4">
                 <p className="text-black font-bold mb-3"> Dirección de Envío</p>
+                {hasValue(modalDetalle.direccion) && (
+                  <div className="mb-3">
+                    <p className="text-gray-600 text-sm">Dirección</p>
+                    <p className="text-black">{modalDetalle.direccion}</p>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {hasValue(modalDetalle.pais) && (
                     <div>
